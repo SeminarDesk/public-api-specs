@@ -1,14 +1,14 @@
 {
   "openapi" : "3.0.3",
   "info" : {
-    "title" : "SeminarDesk Public API",
+    "title" : "SeminarDesk Public API (unreleased next version)",
     "description" : "Provides information about events, dates and prices, allows creation of bookings as well as access to booker online accounts.",
     "contact" : {
       "name" : "SeminarDesk support",
       "url" : "https://www.seminardesk.de",
       "email" : "support@seminardesk.de"
     },
-    "version" : "v1"
+    "version" : "v1-next"
   },
   "servers" : [ {
     "url" : "https://{tenantId}.seminardesk.de/api",
@@ -1273,6 +1273,12 @@
           "additionalPriceInfo" : {
             "$ref" : "#/components/schemas/LocalizedString"
           },
+          "contactPersons" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ContactPerson"
+            }
+          },
           "facilitators" : {
             "type" : "array",
             "items" : {
@@ -1297,7 +1303,6 @@
         }
       },
       "EventDateWithEventDetails" : {
-        "description" : "Note that these properties are **DEPRECATED** and will be removed eventually: \n  - `eventId`\n  - `detailpageAvailable`\n  - `titleSlug`\n  - `subtitle`\n  - `teaser`\n  - `teaserPictureUrl`\n  - `description`\n  - `contactPersons`\n  \nPlease use the correspondig fields under `eventInfo`, instead.",
         "allOf" : [ {
           "required" : [ "eventInfo" ],
           "type" : "object",
@@ -1310,12 +1315,9 @@
             }
           }
         }, {
-          "required" : [ "detailpageAvailable", "eventId", "titleSlug" ],
+          "required" : [ "detailpageAvailable", "titleSlug" ],
           "type" : "object",
           "properties" : {
-            "eventId" : {
-              "$ref" : "#/components/schemas/EventId"
-            },
             "detailpageAvailable" : {
               "type" : "boolean"
             },
@@ -1333,16 +1335,62 @@
             },
             "description" : {
               "$ref" : "#/components/schemas/LocalizedString"
-            },
-            "contactPersons" : {
-              "type" : "array",
-              "items" : {
-                "$ref" : "#/components/schemas/ContactPerson"
-              }
             }
           }
         }, {
           "$ref" : "#/components/schemas/EventDate"
+        } ]
+      },
+      "AdditionalFieldWithValue" : {
+        "required" : [ "field", "value" ],
+        "type" : "object",
+        "properties" : {
+          "field" : {
+            "$ref" : "#/components/schemas/AdditionalField"
+          },
+          "value" : {
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/AdditionalFieldValue"
+            } ]
+          }
+        }
+      },
+      "AdditionalField" : {
+        "required" : [ "id", "name", "order" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "order" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "AdditionalFieldValue" : {
+        "anyOf" : [ {
+          "type" : "string"
+        }, {
+          "type" : "number"
+        }, {
+          "type" : "integer"
+        }, {
+          "type" : "boolean"
+        }, {
+          "type" : "array",
+          "items" : {
+            "anyOf" : [ {
+              "type" : "string"
+            }, {
+              "type" : "number"
+            }, {
+              "type" : "integer"
+            } ]
+          }
         } ]
       },
       "EventDateWithDetails" : {
@@ -1421,6 +1469,13 @@
             },
             "lateDepartureMode" : {
               "$ref" : "#/components/schemas/LateDepartureMode"
+            },
+            "additionalFields" : {
+              "type" : "array",
+              "nullable" : true,
+              "items" : {
+                "$ref" : "#/components/schemas/AdditionalFieldWithValue"
+              }
             }
           }
         }, {
@@ -1528,9 +1583,8 @@
             "example" : 18
           },
           "priceLevelId" : {
-            "type" : "number",
-            "description" : "The ID of the price level",
-            "format" : "integer"
+            "type" : "integer",
+            "description" : "The ID of the price level"
           },
           "price" : {
             "type" : "number",
@@ -1633,8 +1687,7 @@
             "type" : "boolean"
           },
           "priceLevelId" : {
-            "type" : "number",
-            "format" : "integer"
+            "type" : "integer"
           },
           "name" : {
             "$ref" : "#/components/schemas/LocalizedString"
@@ -1793,6 +1846,13 @@
           },
           "status" : {
             "type" : "string"
+          },
+          "additionalFields" : {
+            "type" : "array",
+            "nullable" : true,
+            "items" : {
+              "$ref" : "#/components/schemas/AdditionalFieldWithValue"
+            }
           }
         }
       },
@@ -2305,12 +2365,10 @@
             "type" : "string"
           },
           "boardTypeId" : {
-            "type" : "number",
-            "format" : "integer"
+            "type" : "integer"
           },
           "priceLevelId" : {
-            "type" : "number",
-            "format" : "integer"
+            "type" : "integer"
           },
           "attendanceFee" : {
             "type" : "number",
@@ -3191,8 +3249,7 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "number",
-            "format" : "integer"
+            "type" : "integer"
           },
           "answer" : {
             "type" : "string"
@@ -3221,8 +3278,7 @@
         "type" : "object",
         "properties" : {
           "code" : {
-            "type" : "number",
-            "format" : "integer"
+            "type" : "integer"
           },
           "field" : {
             "type" : "string"
