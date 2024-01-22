@@ -539,7 +539,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ListFilesResponse"
+                  "$ref" : "#/components/schemas/ListAccountFilesResponse"
                 }
               }
             }
@@ -706,7 +706,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ListInboxFilesResponse"
+                  "$ref" : "#/components/schemas/ListAccountInboxFilesResponse"
                 }
               }
             }
@@ -790,7 +790,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ListDocumentsResponse"
+                  "$ref" : "#/components/schemas/ListAccountDocumentsResponse"
                 }
               }
             }
@@ -874,7 +874,42 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ListBookingsResponse"
+                  "$ref" : "#/components/schemas/ListAccountBookingsResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication token was missing or invalid"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/accounts/{accountId}/dates" : {
+      "get" : {
+        "tags" : [ "Accounts" ],
+        "summary" : "Retrieve the list of dates this account is connected to",
+        "operationId" : "getAccountDates",
+        "parameters" : [ {
+          "name" : "accountId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/AccountId"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "List of dates",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ListAccountDatesResponse"
                 }
               }
             }
@@ -2226,37 +2261,56 @@
         "type" : "object",
         "properties" : {
           "eventDateId" : {
-            "type" : "integer"
+            "type" : "integer",
+            "nullable" : false
           },
           "guestTypeId" : {
-            "type" : "integer"
+            "type" : "integer",
+            "nullable" : true
           },
           "priceLevelId" : {
-            "type" : "integer"
+            "type" : "integer",
+            "nullable" : true
           },
           "dateOfBirth" : {
             "type" : "string",
-            "format" : "date"
+            "format" : "date",
+            "nullable" : true
           },
           "isChild" : {
-            "type" : "boolean"
+            "type" : "boolean",
+            "nullable" : false
           },
           "attendanceStart" : {
             "type" : "string",
-            "format" : "date"
+            "description" : "This will only be considered in case the event date's \"Flexible attendance\" option is enabled",
+            "format" : "date",
+            "nullable" : true
           },
           "attendanceEnd" : {
             "type" : "string",
-            "format" : "date"
+            "description" : "This will only be considered in case the event date's \"Flexible attendance\" option is enabled",
+            "format" : "date",
+            "nullable" : true
           },
           "attendanceFee" : {
-            "type" : "number"
+            "type" : "number",
+            "description" : "This will only be considered in case the event date's attendance fee price list allows self-assessment",
+            "nullable" : true
           },
           "earlyArrivalMode" : {
-            "$ref" : "#/components/schemas/EarlyArrivalMode"
+            "description" : "This will only be considered in case the event date's \"Flexible accommodation\" option is enabled",
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/EarlyArrivalMode"
+            } ]
           },
           "lateDepartureMode" : {
-            "$ref" : "#/components/schemas/LateDepartureMode"
+            "description" : "This will only be considered in case the event date's \"Flexible accommodation\" option is enabled",
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/LateDepartureMode"
+            } ]
           }
         }
       },
@@ -2355,24 +2409,31 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : "integer"
+            "type" : "integer",
+            "nullable" : false
           },
           "guestTypeId" : {
             "type" : "integer",
-            "description" : "ID of the guest type. If not provided, the first guest type of logical type \"participant\" will be used"
+            "description" : "ID of the guest type. If not provided, the first guest type of logical type \"participant\" will be used",
+            "nullable" : true
           },
-          "Lodging" : {
-            "type" : "string"
+          "lodgingType" : {
+            "type" : "string",
+            "nullable" : true
           },
           "boardTypeId" : {
-            "type" : "integer"
+            "type" : "integer",
+            "nullable" : true
           },
           "priceLevelId" : {
-            "type" : "integer"
+            "type" : "integer",
+            "nullable" : true
           },
           "attendanceFee" : {
             "type" : "number",
-            "format" : "double"
+            "description" : "This will only be considered in case the event date's attendance fee price list allows self-assessment",
+            "format" : "double",
+            "nullable" : true
           },
           "extras" : {
             "type" : "array",
@@ -2382,11 +2443,29 @@
           },
           "attendanceStart" : {
             "type" : "string",
-            "format" : "date"
+            "description" : "This will only be considered in case the event date's \"Flexible attendance\" option is enabled",
+            "format" : "date",
+            "nullable" : true
           },
           "attendanceEnd" : {
             "type" : "string",
-            "format" : "date"
+            "description" : "This will only be considered in case the event date's \"Flexible attendance\" option is enabled",
+            "format" : "date",
+            "nullable" : true
+          },
+          "earlyArrivalMode" : {
+            "description" : "This will only be considered in case the event date's \"Flexible accommodation\" option is enabled",
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/EarlyArrivalMode"
+            } ]
+          },
+          "lateDepartureMode" : {
+            "description" : "This will only be considered in case the event date's \"Flexible accommodation\" option is enabled",
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/LateDepartureMode"
+            } ]
           },
           "attendanceType" : {
             "type" : "string",
@@ -2816,13 +2895,20 @@
         "allOf" : [ {
           "$ref" : "#/components/schemas/BaseUserProfile"
         }, {
-          "required" : [ "email" ],
+          "required" : [ "email", "isFacilitator" ],
           "type" : "object",
           "properties" : {
             "email" : {
               "type" : "string",
               "format" : "email",
+              "nullable" : false,
+              "readOnly" : true,
               "example" : "alex_james@example.com"
+            },
+            "hasFacilitatorAccess" : {
+              "type" : "boolean",
+              "nullable" : false,
+              "readOnly" : true
             }
           }
         } ]
@@ -2924,19 +3010,19 @@
           }
         }
       },
-      "ListFilesResponse" : {
+      "ListAccountFilesResponse" : {
         "type" : "array",
         "items" : {
           "$ref" : "#/components/schemas/File"
         }
       },
-      "ListInboxFilesResponse" : {
+      "ListAccountInboxFilesResponse" : {
         "type" : "array",
         "items" : {
           "$ref" : "#/components/schemas/File"
         }
       },
-      "ListDocumentsResponse" : {
+      "ListAccountDocumentsResponse" : {
         "type" : "array",
         "items" : {
           "type" : "object",
@@ -2953,10 +3039,16 @@
           } ]
         }
       },
-      "ListBookingsResponse" : {
+      "ListAccountBookingsResponse" : {
         "type" : "array",
         "items" : {
           "$ref" : "#/components/schemas/BookingInfo"
+        }
+      },
+      "ListAccountDatesResponse" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/components/schemas/ListAccountDatesResponse_inner"
         }
       },
       "CreateFilePayload" : {
@@ -3559,6 +3651,15 @@
           }
         },
         "nullable" : true
+      },
+      "ListAccountDatesResponse_inner" : {
+        "required" : [ "date" ],
+        "type" : "object",
+        "properties" : {
+          "date" : {
+            "$ref" : "#/components/schemas/EventDateInfo"
+          }
+        }
       }
     },
     "responses" : {
