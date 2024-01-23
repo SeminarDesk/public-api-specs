@@ -1410,7 +1410,7 @@
             "teaserPicture" : {
               "nullable" : true,
               "allOf" : [ {
-                "$ref" : "#/components/schemas/PictureIncludingMetaData"
+                "$ref" : "#/components/schemas/ImageIncludingMetaData"
               } ]
             },
             "description" : {
@@ -1421,33 +1421,37 @@
           "$ref" : "#/components/schemas/EventDate"
         } ]
       },
-      "PictureIncludingMetaData" : {
-        "required" : [ "url" ],
+      "ImageIncludingMetaData" : {
+        "required" : [ "fileSize", "height", "url", "width" ],
         "type" : "object",
         "properties" : {
           "url" : {
-            "allOf" : [ {
-              "$ref" : "#/components/schemas/LocalizedString"
-            } ]
+            "$ref" : "#/components/schemas/LocalizedString"
           },
           "alternativeText" : {
-            "nullable" : true,
-            "allOf" : [ {
-              "$ref" : "#/components/schemas/LocalizedString"
-            } ]
+            "$ref" : "#/components/schemas/LocalizedString"
           },
           "title" : {
-            "maxLength" : 255,
-            "nullable" : true,
-            "allOf" : [ {
-              "$ref" : "#/components/schemas/LocalizedString"
-            } ]
+            "$ref" : "#/components/schemas/LocalizedString"
           },
           "caption" : {
-            "nullable" : true,
-            "allOf" : [ {
-              "$ref" : "#/components/schemas/LocalizedString"
-            } ]
+            "$ref" : "#/components/schemas/LocalizedString"
+          },
+          "width" : {
+            "type" : "integer",
+            "description" : "Width of the image in pixels",
+            "nullable" : false
+          },
+          "height" : {
+            "type" : "integer",
+            "description" : "Height of the image in pixels",
+            "nullable" : false
+          },
+          "fileSize" : {
+            "type" : "integer",
+            "description" : "File size in bytes",
+            "format" : "int64",
+            "nullable" : false
           }
         }
       },
@@ -1836,7 +1840,7 @@
           "teaserPicture" : {
             "nullable" : true,
             "allOf" : [ {
-              "$ref" : "#/components/schemas/PictureIncludingMetaData"
+              "$ref" : "#/components/schemas/ImageIncludingMetaData"
             } ]
           },
           "description" : {
@@ -1899,7 +1903,7 @@
           "headerPicture" : {
             "nullable" : true,
             "allOf" : [ {
-              "$ref" : "#/components/schemas/PictureIncludingMetaData"
+              "$ref" : "#/components/schemas/ImageIncludingMetaData"
             } ]
           },
           "infoDatesPrices" : {
