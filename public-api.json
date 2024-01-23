@@ -888,11 +888,11 @@
         } ]
       }
     },
-    "/accounts/{accountId}/dates" : {
+    "/accounts/{accountId}/dates/upcoming" : {
       "get" : {
         "tags" : [ "Accounts" ],
-        "summary" : "Retrieve the list of dates this account is connected to",
-        "operationId" : "getAccountDates",
+        "summary" : "Retrieve the list of upcoming dates this account is connected to",
+        "operationId" : "getUpcomingAccountDates",
         "parameters" : [ {
           "name" : "accountId",
           "in" : "path",
@@ -905,11 +905,46 @@
         } ],
         "responses" : {
           "200" : {
-            "description" : "List of dates",
+            "description" : "List of dates including statistics and guest data",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/ListAccountDatesResponse"
+                  "$ref" : "#/components/schemas/ListAccountEventDatesResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication token was missing or invalid"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/accounts/{accountId}/dates/past" : {
+      "get" : {
+        "tags" : [ "Accounts" ],
+        "summary" : "Retrieve the list of past dates this account is connected to",
+        "operationId" : "getPastAccountDates",
+        "parameters" : [ {
+          "name" : "accountId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/AccountId"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "List of dates including statistics and guest data",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ListAccountEventDatesResponse"
                 }
               }
             }
@@ -1366,7 +1401,17 @@
               "$ref" : "#/components/schemas/LocalizedString"
             },
             "teaserPictureUrl" : {
-              "$ref" : "#/components/schemas/LocalizedString"
+              "description" : "This field is deprecated, please refer to `teaserPicture` instead",
+              "deprecated" : true,
+              "allOf" : [ {
+                "$ref" : "#/components/schemas/LocalizedString"
+              } ]
+            },
+            "teaserPicture" : {
+              "nullable" : true,
+              "allOf" : [ {
+                "$ref" : "#/components/schemas/PictureIncludingMetaData"
+              } ]
             },
             "description" : {
               "$ref" : "#/components/schemas/LocalizedString"
@@ -1375,6 +1420,36 @@
         }, {
           "$ref" : "#/components/schemas/EventDate"
         } ]
+      },
+      "PictureIncludingMetaData" : {
+        "required" : [ "url" ],
+        "type" : "object",
+        "properties" : {
+          "url" : {
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/LocalizedString"
+            } ]
+          },
+          "alternativeText" : {
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/LocalizedString"
+            } ]
+          },
+          "title" : {
+            "maxLength" : 255,
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/LocalizedString"
+            } ]
+          },
+          "caption" : {
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/LocalizedString"
+            } ]
+          }
+        }
       },
       "AdditionalFieldWithValue" : {
         "required" : [ "field", "value" ],
@@ -1752,7 +1827,17 @@
             "$ref" : "#/components/schemas/LocalizedString"
           },
           "teaserPictureUrl" : {
-            "$ref" : "#/components/schemas/LocalizedString"
+            "description" : "This field is deprecated, please refer to `teaserPicture` instead",
+            "deprecated" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/LocalizedString"
+            } ]
+          },
+          "teaserPicture" : {
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/PictureIncludingMetaData"
+            } ]
           },
           "description" : {
             "$ref" : "#/components/schemas/LocalizedString"
@@ -1780,7 +1865,7 @@
         }
       },
       "Event" : {
-        "required" : [ "additionalQuestions", "contactPersons", "dates", "description", "facilitators", "headerPictureUrl", "id", "infoBoardLodging", "infoDatesPrices", "infoMisc", "labels", "settings", "status", "subtitle", "teaser", "title", "titleSlug" ],
+        "required" : [ "additionalQuestions", "contactPersons", "dates", "description", "facilitators", "id", "infoBoardLodging", "infoDatesPrices", "infoMisc", "labels", "settings", "status", "subtitle", "teaser", "title", "titleSlug" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -1805,7 +1890,17 @@
             "$ref" : "#/components/schemas/LocalizedString"
           },
           "headerPictureUrl" : {
-            "$ref" : "#/components/schemas/LocalizedString"
+            "description" : "This field is deprecated, please refer to `headerPicture` instead",
+            "deprecated" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/LocalizedString"
+            } ]
+          },
+          "headerPicture" : {
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/PictureIncludingMetaData"
+            } ]
           },
           "infoDatesPrices" : {
             "$ref" : "#/components/schemas/LocalizedString"
@@ -2895,7 +2990,7 @@
         "allOf" : [ {
           "$ref" : "#/components/schemas/BaseUserProfile"
         }, {
-          "required" : [ "email", "isFacilitator" ],
+          "required" : [ "email", "hasFacilitatorAccess" ],
           "type" : "object",
           "properties" : {
             "email" : {
@@ -2959,8 +3054,7 @@
             "type" : "string"
           },
           "status" : {
-            "type" : "string",
-            "enum" : [ "PENDING", "CONFIRMED", "WAIT_LIST", "CANCELED", "WAIT_LIST_CANCELED", "NO_SHOW" ]
+            "$ref" : "#/components/schemas/BookingAndGuestStatus"
           },
           "guests" : {
             "type" : "array",
@@ -2981,6 +3075,10 @@
             }
           }
         }
+      },
+      "BookingAndGuestStatus" : {
+        "type" : "string",
+        "enum" : [ "PENDING", "CONFIRMED", "WAIT_LIST", "CANCELED", "WAIT_LIST_CANCELED", "NO_SHOW" ]
       },
       "EventDateInfo" : {
         "required" : [ "begin", "end", "title" ],
@@ -3045,10 +3143,82 @@
           "$ref" : "#/components/schemas/BookingInfo"
         }
       },
-      "ListAccountDatesResponse" : {
-        "type" : "array",
-        "items" : {
-          "$ref" : "#/components/schemas/ListAccountDatesResponse_inner"
+      "ListAccountEventDatesResponse" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/BaseList"
+        }, {
+          "type" : "object",
+          "properties" : {
+            "data" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/components/schemas/ListAccountEventDatesResponse_data"
+              }
+            }
+          }
+        } ]
+      },
+      "EventDateGuestInfo" : {
+        "required" : [ "fullName", "salutation" ],
+        "type" : "object",
+        "properties" : {
+          "salutation" : {
+            "type" : "string",
+            "description" : "Name of the salutation"
+          },
+          "fullName" : {
+            "type" : "string"
+          },
+          "age" : {
+            "type" : "integer"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/BookingAndGuestStatus"
+          }
+        }
+      },
+      "EventDateStatistics" : {
+        "type" : "object",
+        "properties" : {
+          "unconfirmedOrWaitingBookings" : {
+            "type" : "integer",
+            "nullable" : false
+          },
+          "unconfirmedOrWaitingGuests" : {
+            "type" : "integer",
+            "nullable" : false
+          },
+          "pendingParticipantGuests" : {
+            "type" : "integer",
+            "description" : "Number of pending guests of type \"participant\"",
+            "nullable" : false
+          },
+          "confirmedBookings" : {
+            "type" : "integer",
+            "nullable" : false
+          },
+          "confirmedGuests" : {
+            "type" : "integer",
+            "nullable" : false
+          },
+          "confirmedParticipantGuests" : {
+            "type" : "integer",
+            "description" : "Number of confirmed guests of type \"participant\"",
+            "nullable" : false
+          },
+          "totalBookings" : {
+            "type" : "integer",
+            "nullable" : false
+          },
+          "totalGuests" : {
+            "type" : "integer",
+            "nullable" : false
+          },
+          "availableSpots" : {
+            "type" : "integer",
+            "description" : "Number of bookable spots, based on the \"max. part\" or *null* in case this is not set",
+            "nullable" : true
+          }
         }
       },
       "CreateFilePayload" : {
@@ -3302,19 +3472,19 @@
             "type" : "string",
             "description" : "Link to the first page of this list",
             "format" : "url",
-            "example" : "https://{{tenantId}}.seminardesk.de/api/eventDates/upcoming?page[number]=1&page[size]=20"
+            "example" : "https://{{tenantId}}.seminardesk.de/api/...?page[number]=1&page[size]=20"
           },
           "lastPage" : {
             "type" : "string",
             "description" : "Link to the last page of this list",
             "format" : "url",
-            "example" : "https://{{tenantId}}.seminardesk.de/api/eventDates/upcoming?page[number]=3&page[size]=20"
+            "example" : "https://{{tenantId}}.seminardesk.de/api/...?page[number]=3&page[size]=20"
           },
           "nextPage" : {
             "type" : "string",
             "description" : "Link to the next page of this list – or null if it is already the last one",
             "format" : "url",
-            "example" : "https://{{tenantId}}.seminardesk.de/api/eventDates/upcoming?page[number]=2&page[size]=20"
+            "example" : "https://{{tenantId}}.seminardesk.de/api/...?page[number]=2&page[size]=20"
           },
           "previousPage" : {
             "type" : "string",
@@ -3652,12 +3822,21 @@
         },
         "nullable" : true
       },
-      "ListAccountDatesResponse_inner" : {
-        "required" : [ "date" ],
+      "ListAccountEventDatesResponse_data" : {
+        "required" : [ "eventDate", "guests", "statistics" ],
         "type" : "object",
         "properties" : {
-          "date" : {
+          "eventDate" : {
             "$ref" : "#/components/schemas/EventDateInfo"
+          },
+          "statistics" : {
+            "$ref" : "#/components/schemas/EventDateStatistics"
+          },
+          "guests" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EventDateGuestInfo"
+            }
           }
         }
       }
