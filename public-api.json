@@ -2827,7 +2827,7 @@
         }
       },
       "Label" : {
-        "required" : [ "abbreviation", "description", "id", "name", "pictureUrl" ],
+        "required" : [ "abbreviation", "color", "description", "id", "labelGroup", "name", "order", "pictureUrl" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -2844,6 +2844,15 @@
           },
           "pictureUrl" : {
             "$ref" : "#/components/schemas/LocalizedString"
+          },
+          "order" : {
+            "type" : "integer"
+          },
+          "color" : {
+            "type" : "string"
+          },
+          "labelGroup" : {
+            "$ref" : "#/components/schemas/Label_labelGroup"
           }
         }
       },
@@ -3811,6 +3820,17 @@
           },
           "checkboxText" : {
             "$ref" : "#/components/schemas/LocalizedString"
+          }
+        }
+      },
+      "Label_labelGroup" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer"
+          },
+          "name" : {
+            "type" : "string"
           }
         }
       },
