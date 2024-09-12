@@ -63,6 +63,16 @@
         "tags" : [ "Event Dates" ],
         "summary" : "Retrieve list of all upcoming, published event dates",
         "operationId" : "getUpcomingEventDates",
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "deepObject",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/page"
+          }
+        } ],
         "responses" : {
           "200" : {
             "description" : "Successful response - contains list of event dates including some details of the events they belong to",
@@ -82,6 +92,16 @@
         "tags" : [ "Event Dates" ],
         "summary" : "Retrieve list of all past, published event dates",
         "operationId" : "getPastEventDates",
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "deepObject",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/page"
+          }
+        } ],
         "responses" : {
           "200" : {
             "description" : "Successful response - contains list of event dates including some details of the events they belong to",
@@ -1282,6 +1302,24 @@
         "properties" : {
           "meta" : {
             "$ref" : "#/components/schemas/BaseList_meta"
+          }
+        }
+      },
+      "PaginationParameters" : {
+        "type" : "object",
+        "properties" : {
+          "number" : {
+            "minimum" : 1,
+            "type" : "integer",
+            "description" : "Page number",
+            "default" : 1
+          },
+          "size" : {
+            "maximum" : 100,
+            "minimum" : 1,
+            "type" : "integer",
+            "description" : "Size of the page",
+            "default" : 20
           }
         }
       },
@@ -3449,6 +3487,12 @@
           }
         }
       },
+      "page" : {
+        "nullable" : true,
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/PaginationParameters"
+        } ]
+      },
       "EventDatesList_meta" : {
         "type" : "object",
         "properties" : {
@@ -3916,6 +3960,16 @@
         "explode" : false,
         "schema" : {
           "type" : "integer"
+        }
+      },
+      "Pagination" : {
+        "name" : "page",
+        "in" : "query",
+        "required" : false,
+        "style" : "deepObject",
+        "explode" : false,
+        "schema" : {
+          "$ref" : "#/components/schemas/page"
         }
       }
     },
