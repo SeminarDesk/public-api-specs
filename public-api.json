@@ -2393,6 +2393,14 @@
           },
           "accountData" : {
             "$ref" : "#/components/schemas/BaseBookingPayload_accountData"
+          },
+          "paymentSuccessUrl" : {
+            "type" : "string",
+            "description" : "URL where to redirect after successful online payment completion"
+          },
+          "paymentCancelUrl" : {
+            "type" : "string",
+            "description" : "URL where to redirect if online payment is canceled"
           }
         }
       },
@@ -2453,6 +2461,9 @@
           },
           "message" : {
             "type" : "string"
+          },
+          "payment" : {
+            "$ref" : "#/components/schemas/CreateBookingResponse_payment"
           }
         }
       },
@@ -2515,6 +2526,10 @@
           },
           "showNetPrices" : {
             "type" : "boolean"
+          },
+          "requireOnlinePayment" : {
+            "type" : "boolean",
+            "default" : false
           }
         }
       },
@@ -3835,8 +3850,7 @@
           "bankName" : {
             "type" : "string"
           }
-        },
-        "nullable" : true
+        }
       },
       "CreateOrganizationBookingPayload_booker" : {
         "required" : [ "contactPerson", "email", "name" ],
@@ -3890,6 +3904,20 @@
             "type" : "string"
           }
         }
+      },
+      "CreateBookingResponse_payment" : {
+        "type" : "object",
+        "properties" : {
+          "required" : {
+            "type" : "boolean",
+            "description" : "Always true when this object is present"
+          },
+          "checkoutUrl" : {
+            "type" : "string",
+            "description" : "Checkout URL where the booker can complete the payment"
+          }
+        },
+        "description" : "Details about online payment. Only present if the event requires immediate online \npayment during registration. If present, the client should redirect the user to \nthe provided checkoutUrl to complete payment.\n"
       },
       "EventSettings_mandatoryFieldsBooker" : {
         "type" : "object",
