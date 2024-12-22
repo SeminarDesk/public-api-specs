@@ -1057,7 +1057,7 @@
         } ],
         "responses" : {
           "200" : {
-            "description" : "Dcoument's binary contents",
+            "description" : "Document's binary contents",
             "content" : {
               "application/octet-stream" : {
                 "schema" : {
@@ -2171,9 +2171,9 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "single_choice", "multiple_selection", "bool", "text", "multiline_text" ]
+            "enum" : [ "single_choice", "multiple_selection", "bool", "text", "multiline_text", "file" ]
           },
-          "requird" : {
+          "required" : {
             "type" : "boolean"
           },
           "options" : {
@@ -4078,7 +4078,7 @@
           }
         }
       },
-      "TenantInfo_pricesInfo_curency" : {
+      "TenantInfo_pricesInfo_currency" : {
         "required" : [ "code", "name", "symbol" ],
         "type" : "object",
         "properties" : {
@@ -4097,8 +4097,8 @@
         "required" : [ "currency" ],
         "type" : "object",
         "properties" : {
-          "curency" : {
-            "$ref" : "#/components/schemas/TenantInfo_pricesInfo_curency"
+          "currency" : {
+            "$ref" : "#/components/schemas/TenantInfo_pricesInfo_currency"
           }
         }
       },
