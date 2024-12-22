@@ -273,6 +273,45 @@
         }
       }
     },
+    "/bookingFiles" : {
+      "post" : {
+        "tags" : [ "Bookings" ],
+        "summary" : "Upload a file that will be attached to a booking",
+        "description" : "Allowed file types: PDF, PNG, GIF, JPEG. Maximum size per file: 10 MB.",
+        "operationId" : "uploadBookingFile",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/bookingFiles_body"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "File uploaded successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_201"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad request"
+          },
+          "413" : {
+            "description" : "File too large"
+          },
+          "500" : {
+            "description" : "Server error"
+          }
+        }
+      }
+    },
     "/accounts" : {
       "post" : {
         "tags" : [ "Accounts" ],
@@ -742,7 +781,7 @@
       "post" : {
         "tags" : [ "Accounts" ],
         "summary" : "Upload a file to the account",
-        "description" : "Allowed file types: PDF, PNG, JPEG.  Maximum size per file: 10 MB.",
+        "description" : "Allowed file types: PDF, PNG, GIF, JPEG.  Maximum size per file: 10 MB.",
         "operationId" : "addAccountFile",
         "parameters" : [ {
           "name" : "accountId",
@@ -2326,7 +2365,6 @@
         "properties" : {
           "additionalQuestions" : {
             "type" : "array",
-            "nullable" : true,
             "items" : {
               "$ref" : "#/components/schemas/BaseBookingPayload_additionalQuestions"
             }
@@ -3661,6 +3699,40 @@
           "$ref" : "#/components/schemas/PaginationParameters"
         } ]
       },
+      "bookingFiles_body" : {
+        "required" : [ "content", "fileName" ],
+        "type" : "object",
+        "properties" : {
+          "fileName" : {
+            "type" : "string"
+          },
+          "content" : {
+            "type" : "string",
+            "format" : "binary"
+          }
+        }
+      },
+      "inline_response_201" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "size" : {
+            "type" : "number"
+          },
+          "creationDate" : {
+            "$ref" : "#/components/schemas/Timestamp"
+          }
+        }
+      },
       "EventDatesList_meta" : {
         "type" : "object",
         "properties" : {
@@ -3733,13 +3805,18 @@
       },
       "BaseBookingPayload_additionalQuestions" : {
         "required" : [ "answer", "id" ],
-        "type" : "object",
         "properties" : {
           "id" : {
             "type" : "integer"
           },
           "answer" : {
-            "type" : "string"
+            "description" : "For questions of type \"file\", this must be a fileId (UUID) referencing an uploaded file.\nFor all other question types (single_choice, multiple_selection, bool, text, multiline_text), this must be a string.\n",
+            "oneOf" : [ {
+              "type" : "string"
+            }, {
+              "type" : "string",
+              "format" : "uuid"
+            } ]
           }
         }
       },
