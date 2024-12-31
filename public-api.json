@@ -4036,6 +4036,21 @@
           },
           "price" : {
             "type" : "number"
+          },
+          "priceGross" : {
+            "type" : "number"
+          },
+          "priceNet" : {
+            "type" : "number"
+          },
+          "restrictedToLodgingTypes" : {
+            "type" : "array",
+            "description" : "In case this misc item is restricted to certain room types, this will contain the list of room type codes. If the array is empty or `null`, this means that the misc item is not restricted to any room type.",
+            "nullable" : true,
+            "example" : [ "EZ", "DZ" ],
+            "items" : {
+              "type" : "string"
+            }
           }
         }
       },
