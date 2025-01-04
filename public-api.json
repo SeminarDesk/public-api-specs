@@ -3461,16 +3461,13 @@
         }
       },
       "CreateFilePayload" : {
-        "required" : [ "content", "fileName", "title" ],
+        "required" : [ "file", "title" ],
         "type" : "object",
         "properties" : {
-          "fileName" : {
-            "type" : "string"
-          },
           "title" : {
             "type" : "string"
           },
-          "content" : {
+          "file" : {
             "type" : "string",
             "format" : "binary"
           }
@@ -3724,13 +3721,10 @@
         } ]
       },
       "bookingFiles_body" : {
-        "required" : [ "content", "fileName" ],
+        "required" : [ "file" ],
         "type" : "object",
         "properties" : {
-          "fileName" : {
-            "type" : "string"
-          },
-          "content" : {
+          "file" : {
             "type" : "string",
             "format" : "binary"
           }
