@@ -209,16 +209,16 @@
         }
       }
     },
-    "/booking" : {
+    "/bookings" : {
       "post" : {
         "tags" : [ "Bookings" ],
-        "summary" : "Create a new booking with the provided details",
-        "operationId" : "createBooking",
+        "summary" : "Create a new booking with the provided details. The booker is a person/individual.",
+        "operationId" : "createIndividualBooking",
         "requestBody" : {
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/CreateBookingPayload"
+                "$ref" : "#/components/schemas/CreateIndividualBookingPayload"
               }
             }
           },
@@ -241,13 +241,52 @@
         }
       }
     },
+    "/bookingFiles" : {
+      "post" : {
+        "tags" : [ "Bookings" ],
+        "summary" : "Upload a file that will be attached to a booking",
+        "description" : "Allowed file types: PDF, PNG, GIF, JPEG. Maximum size per file: 10 MB.",
+        "operationId" : "uploadBookingFile",
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/bookingFiles_body"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "File uploaded successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_201"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad request"
+          },
+          "413" : {
+            "description" : "File too large"
+          },
+          "500" : {
+            "description" : "Server error"
+          }
+        }
+      }
+    },
     "/accounts" : {
       "post" : {
         "tags" : [ "Accounts" ],
-        "summary" : "Create a new account",
+        "summary" : "Create a new account for a person/individual or organization",
         "operationId" : "createAccount",
         "requestBody" : {
-          "description" : "Note: `password` is optional",
+          "description" : "Account creation payload with support for both personal and organization accounts.  *Note*: `password` is optional.",
           "content" : {
             "application/json" : {
               "schema" : {
@@ -267,6 +306,169 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/accounts/login" : {
+      "post" : {
+        "tags" : [ "Accounts", "Authentication" ],
+        "summary" : "Authenticate via the given email and password",
+        "description" : "Returns \"current user\" information including authentication token and profile.",
+        "operationId" : "accountLogin",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginPayload"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Authentication successful",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CurrentUserResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Authentication token was missing or invalid"
+          },
+          "403" : {
+            "description" : "Authentication incomplete (2FA enabled)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LoginTwoFactorAuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts/login/verify" : {
+      "post" : {
+        "tags" : [ "Accounts", "Authentication" ],
+        "summary" : "Validate the given 2FA token",
+        "operationId" : "verifyAccount2fa",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/LoginTwoFactorAuthPayload"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Authentication successful",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CurrentUserResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Authentication unsuccessful, token or 2FA code invalid/expired"
+          }
+        }
+      }
+    },
+    "/accounts/password" : {
+      "post" : {
+        "tags" : [ "Accounts", "Authentication" ],
+        "summary" : "Trigger a \"reset password\" request for the given email address",
+        "operationId" : "resetAccountPassword",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ResetPasswordPayload"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Password reset request was successfully created. If there was a user account with the given email address, a confirmation email was sent to this address"
+          }
+        }
+      }
+    },
+    "/accounts/password/{passwordResetToken}" : {
+      "put" : {
+        "tags" : [ "Accounts", "Authentication" ],
+        "summary" : "Set the password for the account that is related to the given reset token",
+        "operationId" : "setAccountPassword",
+        "parameters" : [ {
+          "name" : "passwordResetToken",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SetPasswordPayload"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "204" : {
+            "description" : "Password was set successfully"
+          },
+          "403" : {
+            "description" : "Password reset token was invalid"
+          }
+        }
+      }
+    },
+    "/accounts/confirmation/{accountConfirmationToken}" : {
+      "get" : {
+        "tags" : [ "Accounts", "Authentication" ],
+        "summary" : "Check whether the given account confirmation token is valid",
+        "operationId" : "validateAccountConfirmationToken",
+        "parameters" : [ {
+          "name" : "accountConfirmationToken",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Token is valid. See payload for account status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccountConfirmationTokenResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Token is invalid"
           }
         }
       }
@@ -292,7 +494,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/UserProfileResponse"
+                  "$ref" : "#/components/schemas/Profile"
                 }
               }
             }
@@ -336,7 +538,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/UserProfileResponse"
+                  "$ref" : "#/components/schemas/Profile"
                 }
               }
             }
@@ -471,34 +673,6 @@
         } ]
       }
     },
-    "/accounts/{accountId}/logout" : {
-      "post" : {
-        "tags" : [ "Accounts" ],
-        "summary" : "Invalidate the authentication token.",
-        "operationId" : "accountLogout",
-        "parameters" : [ {
-          "name" : "accountId",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "$ref" : "#/components/schemas/AccountId"
-          }
-        } ],
-        "responses" : {
-          "204" : {
-            "description" : "Logout successful"
-          },
-          "403" : {
-            "description" : "Authentication token was missing or invalid"
-          }
-        },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
-      }
-    },
     "/accounts/{accountId}/delete" : {
       "post" : {
         "tags" : [ "Accounts" ],
@@ -575,7 +749,7 @@
       "post" : {
         "tags" : [ "Accounts" ],
         "summary" : "Upload a file to the account",
-        "description" : "Allowed file types: PDF, PNG, JPEG.  Maximum size per file: 10 MB.",
+        "description" : "Allowed file types: PDF, PNG, GIF, JPEG.  Maximum size per file: 10 MB.",
         "operationId" : "addAccountFile",
         "parameters" : [ {
           "name" : "accountId",
@@ -851,7 +1025,7 @@
         } ],
         "responses" : {
           "200" : {
-            "description" : "Dcoument's binary contents",
+            "description" : "Document's binary contents",
             "content" : {
               "application/octet-stream" : {
                 "schema" : {
@@ -908,169 +1082,74 @@
         } ]
       }
     },
-    "/accounts/{accountId}/dates/upcoming" : { },
-    "/accounts/{accountId}/dates/past" : { },
-    "/accounts/login" : {
-      "post" : {
-        "tags" : [ "Accounts" ],
-        "summary" : "Authenticate via the given email and password",
-        "description" : "Returns \"current user\" information including authentication token and profile.",
-        "operationId" : "accountLogin",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/LoginPayload"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "Authentication successful",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CurrentUserResponse"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Authentication incomplete (2FA enabled)",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/LoginTwoFactorAuthResponse"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Authentication token was missing or invalid"
-          }
-        }
-      }
-    },
-    "/accounts/login/verify" : {
-      "post" : {
-        "tags" : [ "Accounts" ],
-        "summary" : "Validate the given 2FA token",
-        "operationId" : "verifyAccount2fa",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/LoginTwoFactorAuthPayload"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "Authentication successful",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CurrentUserResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Authentication unsuccessful, token or 2FA code invalid/expired"
-          }
-        }
-      }
-    },
-    "/accounts/password" : {
-      "post" : {
-        "tags" : [ "Accounts" ],
-        "summary" : "Trigger a \"reset password\" request for the given email address",
-        "operationId" : "resetAccountPassword",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ResetPasswordPayload"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "202" : {
-            "description" : "Password reset request was successfully created. If there was a user account with the given email address, a confirmation email was sent to this address"
-          }
-        }
-      }
-    },
-    "/accounts/password/{passwordResetToken}" : {
-      "put" : {
-        "tags" : [ "Accounts" ],
-        "summary" : "Set the password for the account that is related to the given reset token",
-        "operationId" : "setAccountPassword",
-        "parameters" : [ {
-          "name" : "passwordResetToken",
-          "in" : "path",
-          "required" : true,
-          "style" : "simple",
-          "explode" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/SetPasswordPayload"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "204" : {
-            "description" : "Password was set successfully"
-          },
-          "403" : {
-            "description" : "Password reset token was invalid"
-          }
-        }
-      }
-    },
-    "/accounts/confirmation/{accountConfirmationToken}" : {
+    "/accounts/{accountId}/dates/upcoming" : {
       "get" : {
         "tags" : [ "Accounts" ],
-        "summary" : "Check whether the given account confirmation token is valid",
-        "operationId" : "validateAccountConfirmationToken",
+        "summary" : "Retrieve the list of upcoming dates this account is connected to",
+        "operationId" : "getUpcomingAccountDates",
         "parameters" : [ {
-          "name" : "accountConfirmationToken",
+          "name" : "accountId",
           "in" : "path",
           "required" : true,
           "style" : "simple",
           "explode" : false,
           "schema" : {
-            "type" : "string"
+            "$ref" : "#/components/schemas/AccountId"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "Token is valid. See payload for account status",
+            "description" : "List of dates including statistics and guest data",
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/AccountConfirmationTokenResponse"
+                  "$ref" : "#/components/schemas/ListAccountEventDatesResponse"
                 }
               }
             }
           },
           "403" : {
-            "description" : "Token is invalid"
+            "description" : "Authentication token was missing or invalid"
           }
-        }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/accounts/{accountId}/dates/past" : {
+      "get" : {
+        "tags" : [ "Accounts" ],
+        "summary" : "Retrieve the list of past dates this account is connected to",
+        "operationId" : "getPastAccountDates",
+        "parameters" : [ {
+          "name" : "accountId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "$ref" : "#/components/schemas/AccountId"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "List of dates including statistics and guest data",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ListAccountEventDatesResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication token was missing or invalid"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
       }
     },
     "/facilitators" : {
@@ -1518,7 +1597,7 @@
             "availableMisc" : {
               "type" : "array",
               "items" : {
-                "$ref" : "#/components/schemas/Misc"
+                "$ref" : "#/components/schemas/MiscItem"
               }
             },
             "availableExtras" : {
@@ -1620,7 +1699,7 @@
           }
         }
       },
-      "Misc" : {
+      "MiscItem" : {
         "required" : [ "ageFrom", "ageTo", "id", "prices", "title" ],
         "type" : "object",
         "properties" : {
@@ -1640,6 +1719,15 @@
           "ageTo" : {
             "type" : "integer",
             "example" : 99
+          },
+          "restrictedToLodgingTypes" : {
+            "type" : "array",
+            "description" : "In case this misc item is restricted to certain room types, this will contain the list of room type codes. If the array is empty or `null`, this means that the misc item is *not* restricted to any room type.",
+            "nullable" : true,
+            "example" : [ "EZ", "DZ" ],
+            "items" : {
+              "type" : "string"
+            }
           }
         }
       },
@@ -2060,9 +2148,9 @@
           },
           "type" : {
             "type" : "string",
-            "enum" : [ "single_choice", "multiple_selection", "bool", "text", "multiline_text" ]
+            "enum" : [ "single_choice", "multiple_selection", "bool", "text", "multiline_text", "file" ]
           },
-          "requird" : {
+          "required" : {
             "type" : "boolean"
           },
           "options" : {
@@ -2107,71 +2195,104 @@
           }
         }
       },
-      "BookingGuest" : {
+      "Person" : {
         "required" : [ "firstName", "lastName" ],
-        "type" : "object",
         "properties" : {
-          "address" : {
-            "$ref" : "#/components/schemas/Address"
+          "salutation" : {
+            "type" : "string",
+            "description" : "One of the available salutations"
           },
-          "billingAddress" : {
-            "type" : "object",
+          "title" : {
+            "type" : "string",
+            "description" : "One of the available titles"
+          },
+          "firstName" : {
+            "maxLength" : 255,
+            "type" : "string"
+          },
+          "lastName" : {
+            "maxLength" : 255,
+            "type" : "string"
+          },
+          "address" : {
             "nullable" : true,
             "allOf" : [ {
               "$ref" : "#/components/schemas/Address"
-            }, {
-              "required" : [ "nameOrCompany" ],
-              "type" : "object",
-              "properties" : {
-                "nameOrCompany" : {
-                  "type" : "string"
-                },
-                "email" : {
-                  "type" : "string",
-                  "format" : "email"
-                },
-                "careOf" : {
-                  "type" : "string",
-                  "nullable" : true
-                }
-              }
+            } ]
+          },
+          "billingAddress" : {
+            "nullable" : true,
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/BillingAddress"
             } ]
           },
           "dateOfBirth" : {
             "type" : "string",
             "format" : "date",
+            "nullable" : true,
             "example" : "1980-12-24"
-          },
-          "email" : {
-            "type" : "string",
-            "format" : "email"
-          },
-          "eventDates" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/BookingGuestEventDate"
-            }
-          },
-          "firstName" : {
-            "type" : "string"
-          },
-          "id" : {
-            "type" : "string",
-            "format" : "uuid"
-          },
-          "isChild" : {
-            "type" : "boolean"
-          },
-          "lastName" : {
-            "type" : "string"
-          },
-          "phone" : {
-            "type" : "string"
-          },
-          "salutation" : {
-            "type" : "string"
           }
         }
+      },
+      "Booker" : {
+        "allOf" : [ {
+          "required" : [ "email" ],
+          "type" : "object",
+          "properties" : {
+            "email" : {
+              "type" : "string",
+              "format" : "email"
+            },
+            "phone" : {
+              "type" : "string"
+            },
+            "accountId" : {
+              "description" : "If a valid account ID is provided, the booking will be created for the profile connected to this account",
+              "nullable" : true,
+              "allOf" : [ {
+                "$ref" : "#/components/schemas/AccountId"
+              } ]
+            }
+          }
+        }, {
+          "$ref" : "#/components/schemas/BaseBookingGuest"
+        } ]
+      },
+      "IndividualBookingGuest" : {
+        "allOf" : [ {
+          "required" : [ "eventDates", "id" ],
+          "type" : "object",
+          "properties" : {
+            "id" : {
+              "type" : "string",
+              "format" : "uuid"
+            },
+            "email" : {
+              "type" : "string",
+              "format" : "email"
+            },
+            "isChild" : {
+              "type" : "boolean"
+            }
+          }
+        }, {
+          "$ref" : "#/components/schemas/BaseBookingGuest"
+        } ]
+      },
+      "BaseBookingGuest" : {
+        "allOf" : [ {
+          "type" : "object",
+          "properties" : {
+            "eventDates" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/components/schemas/BookingGuestEventDate"
+              }
+            }
+          }
+        }, {
+          "$ref" : "#/components/schemas/Person"
+        } ]
       },
       "Address" : {
         "type" : "object",
@@ -2194,33 +2315,39 @@
           }
         }
       },
-      "CreateBookingPayload" : {
-        "required" : [ "booker" ],
+      "BillingAddress" : {
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Address"
+        }, {
+          "required" : [ "nameOrCompany" ],
+          "type" : "object",
+          "properties" : {
+            "nameOrCompany" : {
+              "type" : "string"
+            },
+            "email" : {
+              "type" : "string",
+              "format" : "email"
+            },
+            "careOf" : {
+              "type" : "string",
+              "nullable" : true
+            }
+          }
+        } ]
+      },
+      "BaseBookingPayload" : {
         "type" : "object",
         "properties" : {
-          "additionalGuests" : {
-            "type" : "array",
-            "nullable" : true,
-            "items" : {
-              "$ref" : "#/components/schemas/BookingGuest"
-            }
-          },
           "additionalQuestions" : {
             "type" : "array",
-            "nullable" : true,
             "items" : {
-              "$ref" : "#/components/schemas/CreateBookingPayload_additionalQuestions"
+              "$ref" : "#/components/schemas/BaseBookingPayload_additionalQuestions"
             }
-          },
-          "booker" : {
-            "$ref" : "#/components/schemas/BookingGuest"
           },
           "language" : {
             "type" : "string",
-            "nullable" : true
-          },
-          "newsletter" : {
-            "type" : "boolean",
             "nullable" : true
           },
           "notice" : {
@@ -2242,9 +2369,41 @@
             "nullable" : true
           },
           "accountData" : {
-            "$ref" : "#/components/schemas/CreateBookingPayload_accountData"
+            "$ref" : "#/components/schemas/BaseBookingPayload_accountData"
+          },
+          "paymentSuccessUrl" : {
+            "type" : "string",
+            "description" : "URL where to redirect after successful online payment completion"
+          },
+          "paymentCancelUrl" : {
+            "type" : "string",
+            "description" : "URL where to redirect if online payment is canceled"
           }
         }
+      },
+      "CreateIndividualBookingPayload" : {
+        "allOf" : [ {
+          "required" : [ "booker" ],
+          "type" : "object",
+          "properties" : {
+            "booker" : {
+              "$ref" : "#/components/schemas/Booker"
+            },
+            "additionalGuests" : {
+              "type" : "array",
+              "nullable" : true,
+              "items" : {
+                "$ref" : "#/components/schemas/IndividualBookingGuest"
+              }
+            },
+            "newsletter" : {
+              "type" : "boolean",
+              "nullable" : true
+            }
+          }
+        }, {
+          "$ref" : "#/components/schemas/BaseBookingPayload"
+        } ]
       },
       "CreateBookingResponse" : {
         "type" : "object",
@@ -2260,6 +2419,9 @@
           },
           "message" : {
             "type" : "string"
+          },
+          "payment" : {
+            "$ref" : "#/components/schemas/CreateBookingResponse_payment"
           }
         }
       },
@@ -2322,6 +2484,10 @@
           },
           "showNetPrices" : {
             "type" : "boolean"
+          },
+          "requireOnlinePayment" : {
+            "type" : "boolean",
+            "default" : false
           }
         }
       },
@@ -2900,37 +3066,31 @@
             "type" : "boolean"
           },
           "profile" : {
-            "$ref" : "#/components/schemas/UserProfileResponse"
+            "$ref" : "#/components/schemas/Profile"
           }
         }
       },
-      "BaseUserProfile" : {
-        "required" : [ "firstName", "lastName", "salutation" ],
+      "UpdateProfilePayload" : {
+        "oneOf" : [ {
+          "$ref" : "#/components/schemas/PersonProfile"
+        }, {
+          "$ref" : "#/components/schemas/OrganizationProfile"
+        } ]
+      },
+      "Profile" : {
+        "oneOf" : [ {
+          "$ref" : "#/components/schemas/PersonProfile"
+        }, {
+          "$ref" : "#/components/schemas/OrganizationProfile"
+        } ]
+      },
+      "BaseProfile" : {
+        "required" : [ "accountType" ],
+        "type" : "object",
         "properties" : {
-          "salutation" : {
-            "type" : "string",
-            "example" : "Mrs."
-          },
-          "title" : {
-            "type" : "string",
-            "nullable" : true
-          },
-          "firstName" : {
-            "type" : "string",
-            "example" : "Alex"
-          },
-          "lastName" : {
-            "type" : "string",
-            "example" : "James"
-          },
           "phone" : {
-            "type" : "string"
-          },
-          "dateOfBirth" : {
             "type" : "string",
-            "format" : "date",
-            "nullable" : true,
-            "example" : "1980-03-23"
+            "example" : "+49 30 123456"
           },
           "address" : {
             "$ref" : "#/components/schemas/Address"
@@ -2939,61 +3099,106 @@
             "type" : "object",
             "nullable" : true,
             "allOf" : [ {
-              "type" : "object",
-              "properties" : {
-                "nameOrCompany" : {
-                  "type" : "string",
-                  "nullable" : false
-                },
-                "careOf" : {
-                  "type" : "string",
-                  "nullable" : true
-                },
-                "email" : {
-                  "type" : "string",
-                  "nullable" : true
-                }
-              }
-            }, {
-              "$ref" : "#/components/schemas/Address"
+              "$ref" : "#/components/schemas/BillingAddress"
             } ]
           },
-          "subscribedToNewsletter" : {
-            "type" : "boolean"
-          },
-          "labelIds" : {
-            "type" : "array",
-            "items" : {
-              "type" : "integer"
-            }
+          "email" : {
+            "type" : "string",
+            "format" : "email",
+            "readOnly" : true,
+            "example" : "bobby_sample@example.com"
           }
+        },
+        "discriminator" : {
+          "propertyName" : "accountType"
         }
       },
-      "FullUserProfile" : {
+      "PersonProfile" : {
         "allOf" : [ {
-          "$ref" : "#/components/schemas/BaseUserProfile"
-        }, {
-          "required" : [ "email", "hasFacilitatorAccess" ],
+          "required" : [ "accountType", "firstName", "lastName", "salutation" ],
           "type" : "object",
           "properties" : {
-            "email" : {
+            "accountType" : {
               "type" : "string",
-              "format" : "email",
-              "nullable" : false,
               "readOnly" : true,
-              "example" : "alex_james@example.com"
+              "enum" : [ "PERSON" ]
+            },
+            "salutation" : {
+              "type" : "string",
+              "description" : "One of the available salutations"
+            },
+            "title" : {
+              "type" : "string",
+              "description" : "One of the available titles",
+              "nullable" : true
+            },
+            "firstName" : {
+              "maxLength" : 255,
+              "type" : "string",
+              "example" : "Bobby"
+            },
+            "lastName" : {
+              "maxLength" : 255,
+              "type" : "string",
+              "example" : "Sample"
+            },
+            "dateOfBirth" : {
+              "type" : "string",
+              "format" : "date",
+              "nullable" : true,
+              "example" : "1980-03-23"
+            },
+            "subscribedToNewsletter" : {
+              "type" : "boolean",
+              "example" : true
             },
             "hasFacilitatorAccess" : {
               "type" : "boolean",
-              "nullable" : false,
-              "readOnly" : true
+              "readOnly" : true,
+              "example" : false
+            },
+            "labelIds" : {
+              "type" : "array",
+              "description" : "List of public profile label IDs",
+              "example" : [ 1, 2, 3 ],
+              "items" : {
+                "type" : "integer"
+              }
             }
           }
+        }, {
+          "$ref" : "#/components/schemas/BaseProfile"
         } ]
       },
-      "UserProfileResponse" : {
+      "OrganizationProfile" : {
         "allOf" : [ {
-          "$ref" : "#/components/schemas/FullUserProfile"
+          "required" : [ "accountType", "contactPerson", "organizationName" ],
+          "type" : "object",
+          "properties" : {
+            "accountType" : {
+              "type" : "string",
+              "readOnly" : true,
+              "enum" : [ "ORGANIZATION" ]
+            },
+            "organizationName" : {
+              "maxLength" : 255,
+              "type" : "string",
+              "example" : "Sample Corp GmbH"
+            },
+            "organizationDepartment" : {
+              "maxLength" : 255,
+              "type" : "string",
+              "nullable" : true,
+              "example" : "Berlin Branch"
+            },
+            "contactPerson" : {
+              "maxLength" : 255,
+              "type" : "string",
+              "example" : "John Doe (HR Department)"
+            }
+          }
+        }, {
+          "$ref" : "#/components/schemas/BaseProfile"
         } ]
       },
       "File" : {
@@ -3205,16 +3410,13 @@
         }
       },
       "CreateFilePayload" : {
-        "required" : [ "content", "fileName", "title" ],
+        "required" : [ "file", "title" ],
         "type" : "object",
         "properties" : {
-          "fileName" : {
-            "type" : "string"
-          },
           "title" : {
             "type" : "string"
           },
-          "content" : {
+          "file" : {
             "type" : "string",
             "format" : "binary"
           }
@@ -3224,30 +3426,40 @@
         "$ref" : "#/components/schemas/File"
       },
       "CreateAccountPayload" : {
-        "required" : [ "confirmationUrl", "email", "firstName", "lastName" ],
+        "oneOf" : [ {
+          "$ref" : "#/components/schemas/CreatePersonAccountPayload"
+        }, {
+          "$ref" : "#/components/schemas/CreateOrganizationAccountPayload"
+        } ]
+      },
+      "CreatePersonAccountPayload" : {
+        "required" : [ "accountType", "confirmationUrl", "email", "firstName", "lastName" ],
         "type" : "object",
         "properties" : {
+          "accountType" : {
+            "type" : "string",
+            "enum" : [ "PERSON" ]
+          },
           "salutation" : {
             "type" : "string",
             "example" : "Mr."
           },
-          "email" : {
-            "type" : "string",
-            "format" : "email",
-            "example" : "alex.fisher@example.com"
-          },
-          "password" : {
-            "type" : "string",
-            "nullable" : true,
-            "example" : "secret123"
-          },
           "firstName" : {
             "type" : "string",
-            "example" : "Alex"
+            "example" : "Bobby"
           },
           "lastName" : {
             "type" : "string",
-            "example" : "Fisher"
+            "example" : "Sample"
+          },
+          "email" : {
+            "type" : "string",
+            "format" : "email",
+            "example" : "bobby_sample@example.com"
+          },
+          "password" : {
+            "type" : "string",
+            "nullable" : true
           },
           "confirmationUrl" : {
             "type" : "string",
@@ -3264,7 +3476,44 @@
           },
           "subscribedToNewsletter" : {
             "type" : "boolean",
+            "nullable" : false
+          }
+        }
+      },
+      "CreateOrganizationAccountPayload" : {
+        "required" : [ "accountType", "confirmationUrl", "contactPerson", "email", "organizationName" ],
+        "type" : "object",
+        "properties" : {
+          "accountType" : {
+            "type" : "string",
+            "enum" : [ "ORGANIZATION" ]
+          },
+          "organizationName" : {
+            "maxLength" : 255,
+            "type" : "string"
+          },
+          "organizationDepartment" : {
+            "maxLength" : 255,
+            "type" : "string",
             "nullable" : true
+          },
+          "contactPerson" : {
+            "maxLength" : 255,
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string",
+            "format" : "email"
+          },
+          "password" : {
+            "type" : "string",
+            "nullable" : true
+          },
+          "confirmationUrl" : {
+            "type" : "string",
+            "description" : "Note: The API will replace the string `{token}` with the confirmation token",
+            "format" : "uri",
+            "example" : "https://booking.seminardesk.de/demo/confirmation/{token}"
           }
         }
       },
@@ -3289,11 +3538,6 @@
             "enum" : [ "CONFIRMED", "PASSWORD_REQUIRED" ]
           }
         }
-      },
-      "UpdateProfilePayload" : {
-        "allOf" : [ {
-          "$ref" : "#/components/schemas/BaseUserProfile"
-        } ]
       },
       "ResetPasswordPayload" : {
         "type" : "object",
@@ -3425,6 +3669,37 @@
           "$ref" : "#/components/schemas/PaginationParameters"
         } ]
       },
+      "bookingFiles_body" : {
+        "required" : [ "file" ],
+        "type" : "object",
+        "properties" : {
+          "file" : {
+            "type" : "string",
+            "format" : "binary"
+          }
+        }
+      },
+      "inline_response_201" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "size" : {
+            "type" : "number"
+          },
+          "creationDate" : {
+            "$ref" : "#/components/schemas/Timestamp"
+          }
+        }
+      },
       "EventDatesList_meta" : {
         "type" : "object",
         "properties" : {
@@ -3495,19 +3770,24 @@
           }
         }
       },
-      "CreateBookingPayload_additionalQuestions" : {
+      "BaseBookingPayload_additionalQuestions" : {
         "required" : [ "answer", "id" ],
-        "type" : "object",
         "properties" : {
           "id" : {
             "type" : "integer"
           },
           "answer" : {
-            "type" : "string"
+            "description" : "For questions of type \"file\", this must be a fileId (UUID) referencing an uploaded file.\nFor all other question types (single_choice, multiple_selection, bool, text, multiline_text), this must be a string.\n",
+            "oneOf" : [ {
+              "type" : "string"
+            }, {
+              "type" : "string",
+              "format" : "uuid"
+            } ]
           }
         }
       },
-      "CreateBookingPayload_accountData" : {
+      "BaseBookingPayload_accountData" : {
         "type" : "object",
         "properties" : {
           "iban" : {
@@ -3522,8 +3802,7 @@
           "bankName" : {
             "type" : "string"
           }
-        },
-        "nullable" : true
+        }
       },
       "CreateBookingResponse_errors" : {
         "type" : "object",
@@ -3538,6 +3817,20 @@
             "type" : "string"
           }
         }
+      },
+      "CreateBookingResponse_payment" : {
+        "type" : "object",
+        "properties" : {
+          "required" : {
+            "type" : "boolean",
+            "description" : "Always true when this object is present"
+          },
+          "checkoutUrl" : {
+            "type" : "string",
+            "description" : "Checkout URL where the booker can complete the payment"
+          }
+        },
+        "description" : "Details about online payment. Only present if the event requires immediate online \npayment during registration. If present, the client should redirect the user to \nthe provided checkoutUrl to complete payment.\n"
       },
       "EventSettings_mandatoryFieldsBooker" : {
         "type" : "object",
@@ -3656,6 +3949,21 @@
           },
           "price" : {
             "type" : "number"
+          },
+          "priceGross" : {
+            "type" : "number"
+          },
+          "priceNet" : {
+            "type" : "number"
+          },
+          "restrictedToLodgingTypes" : {
+            "type" : "array",
+            "description" : "In case this misc item is restricted to certain room types, this will contain the list of room type codes. If the array is empty or `null`, this means that the misc item is *not* restricted to any room type.",
+            "nullable" : true,
+            "example" : [ "EZ", "DZ" ],
+            "items" : {
+              "type" : "string"
+            }
           }
         }
       },
@@ -3726,7 +4034,7 @@
           }
         }
       },
-      "TenantInfo_pricesInfo_curency" : {
+      "TenantInfo_pricesInfo_currency" : {
         "required" : [ "code", "name", "symbol" ],
         "type" : "object",
         "properties" : {
@@ -3745,8 +4053,8 @@
         "required" : [ "currency" ],
         "type" : "object",
         "properties" : {
-          "curency" : {
-            "$ref" : "#/components/schemas/TenantInfo_pricesInfo_curency"
+          "currency" : {
+            "$ref" : "#/components/schemas/TenantInfo_pricesInfo_currency"
           }
         }
       },
@@ -3784,6 +4092,12 @@
             "$ref" : "#/components/schemas/LocalizedString"
           },
           "twoFactorAuthenticationAvailable" : {
+            "type" : "boolean"
+          },
+          "facilitatorAccessAvailable" : {
+            "type" : "boolean"
+          },
+          "organizationAccountsAvailable" : {
             "type" : "boolean"
           }
         }
