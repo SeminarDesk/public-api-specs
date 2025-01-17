@@ -2191,6 +2191,22 @@
             "items" : {
               "$ref" : "#/components/schemas/AdditionalQuestion_options"
             }
+          },
+          "restrictedToPriceLevels" : {
+            "type" : "array",
+            "description" : "In case this additional question is restricted to certain *price levels*, this will contain the list of their IDs. If the array is empty or `null`, this means that the question is *not* restricted to specific price levels.",
+            "nullable" : true,
+            "items" : {
+              "type" : "integer"
+            }
+          },
+          "restrictedToGuestTypes" : {
+            "type" : "array",
+            "description" : "In case this additional question is restricted to certain *guest types*, this will contain the list of their IDs. If the array is empty or `null`, this means that the question is *not* restricted to specific guest types.",
+            "nullable" : true,
+            "items" : {
+              "type" : "integer"
+            }
           }
         }
       },
@@ -4048,7 +4064,7 @@
           },
           "restrictedToLodgingTypes" : {
             "type" : "array",
-            "description" : "In case this misc item is restricted to certain room types, this will contain the list of room type codes. If the array is empty or `null`, this means that the misc item is *not* restricted to any room type.",
+            "description" : "In case this misc item is restricted to certain room types, this will contain the list of room type codes. If the array is empty or `null`, this means that the misc item is *not* restricted to specific room types.",
             "nullable" : true,
             "example" : [ "EZ", "DZ" ],
             "items" : {
