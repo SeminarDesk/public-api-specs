@@ -1758,7 +1758,7 @@
             "nullable" : true,
             "example" : [ "EZ", "DZ" ],
             "items" : {
-              "type" : "integer"
+              "type" : "string"
             }
           }
         }
