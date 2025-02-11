@@ -1762,8 +1762,12 @@
             }
           },
           "restrictedToPriceLevels" : {
+            "type" : "array",
             "description" : "In case this misc item is restricted to certain *price levels*, this will contain the list of their IDs. If the array is empty or `null`, this means that the misc item is *not* restricted to specific price levels.",
-            "nullable" : true
+            "nullable" : true,
+            "items" : {
+              "type" : "integer"
+            }
           }
         }
       },
