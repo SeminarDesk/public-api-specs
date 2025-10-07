@@ -209,7 +209,7 @@
         }
       }
     },
-    "/bookings" : {
+    "/booking" : {
       "post" : {
         "tags" : [ "Bookings" ],
         "summary" : "Create a new booking with the provided details. The booker is a person/individual.",
