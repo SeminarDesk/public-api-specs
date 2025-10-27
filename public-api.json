@@ -1685,6 +1685,11 @@
         "type" : "integer",
         "enum" : [ 0, 1, 2, 3 ]
       },
+      "MiscCalculationMode" : {
+        "type" : "string",
+        "description" : "Calculation mode for misc items. Defines how the price is calculated.",
+        "enum" : [ "PER_NIGHT", "PER_PERSON", "PER_PERSON_AND_NIGHT", "PER_STAY", "PER_ITEM" ]
+      },
       "Lodging" : {
         "required" : [ "id", "order", "prices", "title" ],
         "type" : "object",
@@ -1732,7 +1737,7 @@
         }
       },
       "MiscItem" : {
-        "required" : [ "ageFrom", "ageTo", "id", "prices", "title" ],
+        "required" : [ "ageFrom", "ageTo", "calculationMode", "id", "price", "priceGross", "priceNet", "prices", "title" ],
         "type" : "object",
         "properties" : {
           "id" : {
@@ -1743,6 +1748,24 @@
           },
           "prices" : {
             "$ref" : "#/components/schemas/LocalizedString"
+          },
+          "price" : {
+            "type" : "number",
+            "description" : "The price in the default tax mode (net or gross based on tenant configuration)",
+            "format" : "double"
+          },
+          "priceNet" : {
+            "type" : "number",
+            "description" : "The net price (excluding VAT/tax)",
+            "format" : "double"
+          },
+          "priceGross" : {
+            "type" : "number",
+            "description" : "The gross price (including VAT/tax)",
+            "format" : "double"
+          },
+          "calculationMode" : {
+            "$ref" : "#/components/schemas/MiscCalculationMode"
           },
           "ageFrom" : {
             "type" : "integer",
