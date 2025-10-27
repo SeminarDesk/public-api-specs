@@ -241,38 +241,6 @@
         }
       }
     },
-    "/organizationBookings" : {
-      "post" : {
-        "tags" : [ "Bookings" ],
-        "summary" : "Create a new booking with the provided details. The booker is a company/organization.",
-        "operationId" : "createOrganizationBooking",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreateOrganizationBookingPayload"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Successful response - booking was created",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CreateBookingResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Error response - booking could not be created. See `message` for details."
-          }
-        }
-      }
-    },
     "/bookingFiles" : {
       "post" : {
         "tags" : [ "Bookings" ],
@@ -2285,6 +2253,10 @@
             "type" : "string",
             "description" : "One of the available titles"
           },
+          "additionalTitle" : {
+            "type" : "string",
+            "description" : "One of the available additional titles"
+          },
           "firstName" : {
             "maxLength" : 255,
             "type" : "string"
@@ -2459,25 +2431,6 @@
             "description" : "URL where to redirect if online payment is canceled"
           }
         }
-      },
-      "CreateOrganizationBookingPayload" : {
-        "allOf" : [ {
-          "required" : [ "booker", "guests" ],
-          "type" : "object",
-          "properties" : {
-            "booker" : {
-              "$ref" : "#/components/schemas/CreateOrganizationBookingPayload_booker"
-            },
-            "guests" : {
-              "type" : "array",
-              "items" : {
-                "$ref" : "#/components/schemas/IndividualBookingGuest"
-              }
-            }
-          }
-        }, {
-          "$ref" : "#/components/schemas/BaseBookingPayload"
-        } ]
       },
       "CreateIndividualBookingPayload" : {
         "allOf" : [ {
@@ -2876,6 +2829,13 @@
               "type" : "string"
             }
           },
+          "availableAdditionalTitles" : {
+            "type" : "array",
+            "description" : "List of public additional titles (e.g., \"h.c.\", \"MdB\", \"Eur Ing\") that can be selected during online registration.",
+            "items" : {
+              "type" : "string"
+            }
+          },
           "onlineAccountInfo" : {
             "$ref" : "#/components/schemas/TenantInfo_onlineAccountInfo"
           },
@@ -3228,6 +3188,11 @@
             "title" : {
               "type" : "string",
               "description" : "One of the available titles",
+              "nullable" : true
+            },
+            "additionalTitle" : {
+              "type" : "string",
+              "description" : "One of the available additional titles",
               "nullable" : true
             },
             "firstName" : {
@@ -3899,45 +3864,6 @@
           },
           "bankName" : {
             "type" : "string"
-          }
-        }
-      },
-      "CreateOrganizationBookingPayload_booker" : {
-        "required" : [ "contactPerson", "email", "name" ],
-        "type" : "object",
-        "properties" : {
-          "name" : {
-            "maxLength" : 255,
-            "type" : "string",
-            "example" : "Example Company Ltd."
-          },
-          "contactPerson" : {
-            "maxLength" : 255,
-            "type" : "string",
-            "example" : "Bobby Sample"
-          },
-          "email" : {
-            "type" : "string",
-            "format" : "email"
-          },
-          "accountId" : {
-            "description" : "If a valid account ID is provided, the booking will be created for the profile connected to this account",
-            "nullable" : true,
-            "allOf" : [ {
-              "$ref" : "#/components/schemas/AccountId"
-            } ]
-          },
-          "phone" : {
-            "type" : "string"
-          },
-          "address" : {
-            "$ref" : "#/components/schemas/Address"
-          },
-          "billingAddress" : {
-            "nullable" : true,
-            "allOf" : [ {
-              "$ref" : "#/components/schemas/BillingAddress"
-            } ]
           }
         }
       },
