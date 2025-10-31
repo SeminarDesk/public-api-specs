@@ -1656,7 +1656,7 @@
       "MiscCalculationMode" : {
         "type" : "string",
         "description" : "Calculation mode for misc items. Defines how the price is calculated.",
-        "enum" : [ "PER_NIGHT", "PER_PERSON", "PER_PERSON_AND_NIGHT", "PER_STAY", "PER_ITEM" ]
+        "enum" : [ "PER_STAY", "PER_DAY", "PER_NIGHT", "PER_ITEM" ]
       },
       "Lodging" : {
         "required" : [ "id", "order", "prices", "title" ],
