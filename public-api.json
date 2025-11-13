@@ -2,7 +2,7 @@
   "openapi" : "3.0.3",
   "info" : {
     "title" : "SeminarDesk Public API",
-    "description" : "Provides information about events, dates and prices, allows creation of bookings as well as access to booker online accounts.",
+    "description" : "Provides information about events, dates and prices, allows creation of bookings as well as access to booker online accounts.\n\n## Authentication\n\nThis API uses two types of endpoints:\n\n**Public Endpoints** (no authentication required):\n- `/tenant` - Tenant information\n- `/eventDates/*` - Event date listings\n- `/events/*` - Event details\n- `/prices*` - Price calculations\n- `/bookings` (POST) - Create bookings\n- `/accounts` (POST) - Register new account\n- `/accounts/login` - Login to get authentication token\n- `/facilitators/*` - Facilitator information\n\n**Protected Endpoints** (authentication required):\n- `/accounts/{accountId}/*` - All account-specific data requires bearer token authentication\n\nTo access protected endpoints:\n1. Login via `POST /accounts/login` to get an authentication token\n2. Include the token in the Authorization header: `Authorization: Bearer <token>`\n\nYou can safely ignore the \"Authorize\" button in the Swagger UI if you're only using public endpoints.",
     "contact" : {
       "name" : "SeminarDesk support",
       "url" : "https://www.seminardesk.de",
@@ -4222,7 +4222,7 @@
     "securitySchemes" : {
       "bearerAuth" : {
         "type" : "http",
-        "description" : "Authentication token provided after successful login",
+        "description" : "Authentication token provided after successful login via /accounts/login. Required ONLY for accessing account-specific data (endpoints under /accounts/{accountId}/*). Public endpoints like /tenant, /eventDates, /bookings (POST), and /accounts/login do NOT require authentication.",
         "scheme" : "bearer"
       }
     }
