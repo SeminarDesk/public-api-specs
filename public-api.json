@@ -524,14 +524,15 @@
           {
             "bearerAuth": []
           }
-        ]
+        ],
+        "description": "Retrieve the account's profile data including personal information, address, and bank account data.\n\n**Bank Account Data:** If bank data is stored, `bankAccountData` will contain the data with a **masked IBAN** (e.g., \"DE89\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225678\") for security. If no bank data is stored, `bankAccountData` will be `null`."
       },
       "put": {
         "tags": [
           "Accounts"
         ],
         "summary": "Update the account's profile",
-        "description": "*Note*: The profile's email address cannot be changed.",
+        "description": "Update the account's profile data.\n\n*Note*: The profile's email address cannot be changed.\n\n**Bank Account Data (`bankAccountData`) handling:**\n- **Omit the field** to keep existing bank data unchanged\n- **Send an empty object `{}`** to clear/delete all bank data\n- **Send complete data** to update - this is a full replace, not a partial update\n- The IBAN must be the full, unmasked value (not the masked version from GET)\n- Invalid IBAN format will result in a 400 error",
         "operationId": "updateAccountProfile",
         "parameters": [
           {
@@ -3827,6 +3828,15 @@
             "format": "email",
             "readOnly": true,
             "example": "bobby_sample@example.com"
+          },
+          "bankAccountData": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BankAccountData"
+              }
+            ],
+            "nullable": true,
+            "description": "Bank account data for direct debit payments. Returns `null` if no bank data is stored."
           }
         },
         "discriminator": {
@@ -3901,6 +3911,15 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "bankAccountData": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BankAccountDataUpdate"
+                  }
+                ],
+                "nullable": true,
+                "description": "Bank account data update. Omit field to keep existing data unchanged. Send empty object `{}` to clear bank data."
               }
             }
           },
@@ -3941,6 +3960,15 @@
                 "maxLength": 255,
                 "type": "string",
                 "example": "John Doe (HR Department)"
+              },
+              "bankAccountData": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BankAccountDataUpdate"
+                  }
+                ],
+                "nullable": true,
+                "description": "Bank account data update. Omit field to keep existing data unchanged. Send empty object `{}` to clear bank data."
               }
             }
           },
@@ -5260,6 +5288,64 @@
                 }
               }
             }
+          }
+        }
+      },
+      "BankAccountData": {
+        "type": "object",
+        "description": "Bank account data for direct debit (Lastschrift) payments. When retrieved via GET, the IBAN is masked for security (e.g., 'DE89\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225678').",
+        "properties": {
+          "iban": {
+            "type": "string",
+            "description": "IBAN - masked in GET responses (e.g., 'DE89\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225678'), provide full IBAN for updates",
+            "example": "DE89\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225678"
+          },
+          "bic": {
+            "type": "string",
+            "description": "Bank Identifier Code (BIC/SWIFT)",
+            "example": "COBADEFFXXX",
+            "nullable": true
+          },
+          "accountHolder": {
+            "type": "string",
+            "description": "Name of the account holder",
+            "example": "Max Mustermann",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Name of the bank",
+            "example": "Commerzbank",
+            "nullable": true
+          }
+        }
+      },
+      "BankAccountDataUpdate": {
+        "type": "object",
+        "description": "Bank account data for updating profile. Provide complete data - this is a full replace, not a partial update. To clear bank data, send an empty object `{}`.",
+        "properties": {
+          "iban": {
+            "type": "string",
+            "description": "Full IBAN (not masked). Required when updating bank data.",
+            "example": "DE89370400440532013000"
+          },
+          "bic": {
+            "type": "string",
+            "description": "Bank Identifier Code (BIC/SWIFT)",
+            "example": "COBADEFFXXX",
+            "nullable": true
+          },
+          "accountHolder": {
+            "type": "string",
+            "description": "Name of the account holder",
+            "example": "Max Mustermann",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Name of the bank",
+            "example": "Commerzbank",
+            "nullable": true
           }
         }
       }
