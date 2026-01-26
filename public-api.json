@@ -2985,6 +2985,11 @@
           "accountData": {
             "$ref": "#/components/schemas/BaseBookingPayload_accountData"
           },
+          "useStoredBankData": {
+            "type": "boolean",
+            "description": "If true, use bank account data from the authenticated user's profile instead of accountData. Requires the user to be authenticated. When set to true, accountData can be omitted.",
+            "nullable": true
+          },
           "paymentSuccessUrl": {
             "type": "string",
             "description": "URL where to redirect after successful online payment completion"
