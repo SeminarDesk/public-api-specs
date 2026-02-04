@@ -5193,8 +5193,9 @@
           },
           "options": {
             "type": "array",
+            "description": "Available options for SingleChoice questions",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/SurveyQuestionOption"
             },
             "nullable": true
           }
@@ -5208,6 +5209,20 @@
           },
           "label": {
             "type": "string"
+          }
+        }
+      },
+      "SurveyQuestionOption": {
+        "type": "object",
+        "description": "An option for SingleChoice questions",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Option ID (use this as 'value' in the answer)"
+          },
+          "text": {
+            "type": "string",
+            "description": "Option display text"
           }
         }
       },
@@ -5240,13 +5255,6 @@
           },
           "text": {
             "type": "string",
-            "nullable": true
-          },
-          "selectedOptions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
             "nullable": true
           }
         }
