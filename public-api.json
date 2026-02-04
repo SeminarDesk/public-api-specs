@@ -5164,10 +5164,10 @@
           "type": {
             "type": "string",
             "enum": [
-              "LikertScale",
-              "FreeText",
+              "YesNo",
               "SingleChoice",
-              "MultipleChoice"
+              "FreeText",
+              "LikertScale"
             ]
           },
           "isRequired": {
