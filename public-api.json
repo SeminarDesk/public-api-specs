@@ -5250,8 +5250,11 @@
             "type": "integer"
           },
           "value": {
-            "type": "integer",
-            "nullable": true
+            "oneOf": [
+              { "type": "integer" },
+              { "type": "boolean" }
+            ],
+            "description": "Answer value. Use boolean (true/false) for YesNo, integer for SingleChoice (option ID) and LikertScale (scale value)."
           },
           "text": {
             "type": "string",
