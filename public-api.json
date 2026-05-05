@@ -3421,6 +3421,10 @@
           "websiteUrl": {
             "$ref": "#/components/schemas/LocalizedString"
           },
+          "withdrawalUrl": {
+            "description": "Optional URL to an externally hosted withdrawal form (\"Widerrufsformular\"), required by § 356a BGB for distance contracts concluded via online interfaces (effective 19 June 2026). Empty when not configured by the tenant.",
+            "$ref": "#/components/schemas/LocalizedString"
+          },
           "pricesInfo": {
             "$ref": "#/components/schemas/TenantInfo_pricesInfo"
           },
