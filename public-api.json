@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "SeminarDesk Public API",
-    "description": "Provides information about events, dates and prices, allows creation of bookings as well as access to booker online accounts.\n\n## Authentication\n\nThis API uses two types of endpoints:\n\n**Public Endpoints** (no authentication required):\n- `/tenant` - Tenant information\n- `/eventDates/*` - Event date listings\n- `/events/*` - Event details\n- `/prices*` - Price calculations\n- `/bookings` (POST) - Create bookings\n- `/accounts` (POST) - Register new account\n- `/accounts/login` - Login to get authentication token\n- `/facilitators/*` - Facilitator information\n\n**Protected Endpoints** (authentication required):\n- `/accounts/{accountId}/*` - All account-specific data requires bearer token authentication\n\nTo access protected endpoints:\n1. Login via `POST /accounts/login` to get an authentication token\n2. Include the token in the Authorization header: `Authorization: Bearer <token>`\n\nYou can safely ignore the \"Authorize\" button in the Swagger UI if you're only using public endpoints.",
+    "description": "Provides information about events, dates and prices, allows creation of bookings as well as access to booker online accounts.\n\n## Authentication\n\nThis API uses two types of endpoints:\n\n**Public Endpoints** (no authentication required):\n- `/tenant` - Tenant information\n- `/eventDates/*` - Event date listings\n- `/events/*` - Event details\n- `/prices*` - Price calculations\n- `/booking` (POST) - Create bookings\n- `/accounts` (POST) - Register new account\n- `/accounts/login` - Login to get authentication token\n- `/facilitators/*` - Facilitator information\n- `/surveys/{token}` - Survey access and response submission\n\n**Protected Endpoints** (authentication required):\n- `/accounts/{accountId}/*` - All account-specific data requires bearer token authentication\n\nTo access protected endpoints:\n1. Login via `POST /accounts/login` to get an authentication token\n2. Include the token in the Authorization header: `Authorization: Bearer <token>`\n\nYou can safely ignore the \"Authorize\" button in the Swagger UI if you're only using public endpoints.",
     "contact": {
       "name": "SeminarDesk support",
       "url": "https://www.seminardesk.de",
@@ -227,40 +227,6 @@
           },
           "400": {
             "description": "Error response - price query invalid, maybe invalid voucher code was provided"
-          }
-        }
-      }
-    },
-    "/booking": {
-      "post": {
-        "tags": [
-          "Bookings"
-        ],
-        "summary": "Create a new booking with the provided details. The booker is a person/individual.",
-        "operationId": "createIndividualBooking",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateIndividualBookingPayload"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Successful response - booking was created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateBookingResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Error response - booking could not be created. See `message` for details."
           }
         }
       }
@@ -558,14 +524,15 @@
           {
             "bearerAuth": []
           }
-        ]
+        ],
+        "description": "Retrieve the account's profile data including personal information, address, and bank account data.\n\n**Bank Account Data:** If bank data is stored, `bankAccountData` will contain the data with a **masked IBAN** (e.g., \"DE89\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225678\") for security. If no bank data is stored, `bankAccountData` will be `null`."
       },
       "put": {
         "tags": [
           "Accounts"
         ],
         "summary": "Update the account's profile",
-        "description": "*Note*: The profile's email address cannot be changed.",
+        "description": "Update the account's profile data.\n\n*Note*: The profile's email address cannot be changed.\n\n**Bank Account Data (`bankAccountData`) handling:**\n- **Omit the field** to keep existing bank data unchanged\n- **Send an empty object `{}`** to clear/delete all bank data\n- **Send complete data** to update - this is a full replace, not a partial update\n- The IBAN must be the full, unmasked value (not the masked version from GET)\n- Invalid IBAN format will result in a 400 error",
         "operationId": "updateAccountProfile",
         "parameters": [
           {
@@ -1317,6 +1284,40 @@
         }
       }
     },
+    "/booking": {
+      "post": {
+        "tags": [
+          "Bookings"
+        ],
+        "summary": "Create a new booking with the provided details. The booker is a person/individual.",
+        "operationId": "createIndividualBooking",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIndividualBookingPayload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response - booking was created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBookingResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error response - booking could not be created. See `message` for details."
+          }
+        }
+      }
+    },
     "/accounts/{accountId}": {
       "delete": {
         "tags": [
@@ -1395,6 +1396,146 @@
           }
         ]
       }
+    },
+    "/surveys/{token}": {
+      "get": {
+        "tags": [
+          "Surveys"
+        ],
+        "summary": "Retrieve survey structure for public rendering",
+        "description": "Returns the survey structure identified by a distribution token. The token identifies a specific send of a survey with context and expiry.",
+        "operationId": "getSurvey",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "description": "Distribution token that identifies the survey",
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Survey structure retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Survey module is not enabled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Survey not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "This survey is no longer available (expired)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/surveys/{token}/responses": {
+      "post": {
+        "tags": [
+          "Surveys"
+        ],
+        "summary": "Submit survey responses",
+        "description": "Creates a new response for the survey identified by the distribution token.",
+        "operationId": "submitSurveyResponse",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "description": "Distribution token that identifies the survey",
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveySubmitPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Survey response submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveySubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error - required fields missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Survey not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "This survey is no longer available (expired)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1422,13 +1563,6 @@
           },
           "status": {
             "type": "string"
-          },
-          "availableAdditionalTitles": {
-            "type": "array",
-            "description": "List of public additional titles (e.g., 'h.c.', 'MdB', 'Eur Ing') that can be selected during online registration.",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -1926,6 +2060,16 @@
           3
         ]
       },
+      "MiscCalculationMode": {
+        "type": "string",
+        "description": "Calculation mode for misc items. Defines how the price is calculated.",
+        "enum": [
+          "PER_STAY",
+          "PER_DAY",
+          "PER_NIGHT",
+          "PER_ITEM"
+        ]
+      },
       "Lodging": {
         "required": [
           "id",
@@ -1986,13 +2130,13 @@
         "required": [
           "ageFrom",
           "ageTo",
-          "id",
-          "prices",
-          "title",
           "calculationMode",
+          "id",
           "price",
           "priceGross",
-          "priceNet"
+          "priceNet",
+          "prices",
+          "title"
         ],
         "type": "object",
         "properties": {
@@ -2004,6 +2148,24 @@
           },
           "prices": {
             "$ref": "#/components/schemas/LocalizedString"
+          },
+          "price": {
+            "type": "number",
+            "description": "The price in the default tax mode (net or gross based on tenant configuration)",
+            "format": "double"
+          },
+          "priceNet": {
+            "type": "number",
+            "description": "The net price (excluding VAT/tax)",
+            "format": "double"
+          },
+          "priceGross": {
+            "type": "number",
+            "description": "The gross price (including VAT/tax)",
+            "format": "double"
+          },
+          "calculationMode": {
+            "$ref": "#/components/schemas/MiscCalculationMode"
           },
           "ageFrom": {
             "type": "integer",
@@ -2024,24 +2186,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "price": {
-            "type": "number",
-            "description": "The price in the default tax mode (net or gross based on tenant configuration)",
-            "format": "double"
-          },
-          "priceNet": {
-            "type": "number",
-            "description": "The net price (excluding VAT/tax)",
-            "format": "double"
-          },
-          "priceGross": {
-            "type": "number",
-            "description": "The gross price (including VAT/tax)",
-            "format": "double"
-          },
-          "calculationMode": {
-            "$ref": "#/components/schemas/MiscCalculationMode"
           },
           "restrictedToPriceLevels": {
             "type": "array",
@@ -2647,6 +2791,10 @@
             "type": "string",
             "description": "One of the available titles"
           },
+          "additionalTitle": {
+            "type": "string",
+            "description": "One of the available additional titles"
+          },
           "firstName": {
             "maxLength": 255,
             "type": "string"
@@ -2836,6 +2984,11 @@
           },
           "accountData": {
             "$ref": "#/components/schemas/BaseBookingPayload_accountData"
+          },
+          "useStoredBankData": {
+            "type": "boolean",
+            "description": "If true, use bank account data from the authenticated user's profile instead of accountData. Requires the user to be authenticated. When set to true, accountData can be omitted.",
+            "nullable": true
           },
           "paymentSuccessUrl": {
             "type": "string",
@@ -3288,6 +3441,13 @@
               "type": "string"
             }
           },
+          "availableAdditionalTitles": {
+            "type": "array",
+            "description": "List of public additional titles (e.g., \"h.c.\", \"MdB\", \"Eur Ing\") that can be selected during online registration.",
+            "items": {
+              "type": "string"
+            }
+          },
           "onlineAccountInfo": {
             "$ref": "#/components/schemas/TenantInfo_onlineAccountInfo"
           },
@@ -3309,13 +3469,6 @@
             "type": "string",
             "nullable": true,
             "example": "events.customer.de"
-          },
-          "availableAdditionalTitles": {
-            "type": "array",
-            "description": "List of public additional titles (e.g., 'h.c.', 'MdB', 'Eur Ing') that can be selected during online registration.",
-            "items": {
-              "type": "string"
-            }
           }
         }
       },
@@ -3680,6 +3833,15 @@
             "format": "email",
             "readOnly": true,
             "example": "bobby_sample@example.com"
+          },
+          "bankAccountData": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BankAccountData"
+              }
+            ],
+            "nullable": true,
+            "description": "Bank account data for direct debit payments. Returns `null` if no bank data is stored."
           }
         },
         "discriminator": {
@@ -3711,6 +3873,11 @@
               "title": {
                 "type": "string",
                 "description": "One of the available titles",
+                "nullable": true
+              },
+              "additionalTitle": {
+                "type": "string",
+                "description": "One of the available additional titles",
                 "nullable": true
               },
               "firstName": {
@@ -3749,6 +3916,15 @@
                 "items": {
                   "type": "integer"
                 }
+              },
+              "bankAccountData": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BankAccountDataUpdate"
+                  }
+                ],
+                "nullable": true,
+                "description": "Bank account data update. Omit field to keep existing data unchanged. Send empty object `{}` to clear bank data."
               }
             }
           },
@@ -3789,6 +3965,15 @@
                 "maxLength": 255,
                 "type": "string",
                 "example": "John Doe (HR Department)"
+              },
+              "bankAccountData": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BankAccountDataUpdate"
+                  }
+                ],
+                "nullable": true,
+                "description": "Bank account data update. Omit field to keep existing data unchanged. Send empty object `{}` to clear bank data."
               }
             }
           },
@@ -4629,7 +4814,7 @@
           },
           "restrictedToLodgingTypes": {
             "type": "array",
-            "description": "In case this misc item is restricted to certain room types, this will contain the list of room type codes. If the array is empty or `null`, this means that the misc item is *not* restricted to any room type.",
+            "description": "In case this misc item is restricted to certain room types, this will contain the list of room type codes. If the array is empty or `null`, this means that the misc item is *not* restricted to specific room types.",
             "nullable": true,
             "example": [
               "EZ",
@@ -4858,15 +5043,332 @@
           }
         }
       },
-      "MiscCalculationMode": {
-        "type": "string",
-        "description": "Calculation mode for misc items. Defines how the price is calculated.",
-        "enum": [
-          "PER_STAY",
-          "PER_DAY",
-          "PER_NIGHT",
-          "PER_ITEM"
-        ]
+      "ErrorResult": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "HTTP status code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      },
+      "SurveyResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/ErrorResult"
+          },
+          "name": {
+            "type": "string",
+            "description": "Survey name - displayed as header when context is not public"
+          },
+          "introText": {
+            "type": "string",
+            "description": "Introduction text (HTML)",
+            "nullable": true
+          },
+          "outroText": {
+            "type": "string",
+            "description": "Closing text (HTML)",
+            "nullable": true
+          },
+          "context": {
+            "$ref": "#/components/schemas/SurveyContext"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyBlock"
+            }
+          }
+        }
+      },
+      "SurveyContext": {
+        "type": "object",
+        "description": "Context information about the survey (e.g., linked event)",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "None",
+              "Event",
+              "EventDate"
+            ],
+            "description": "Type of context"
+          },
+          "isPublic": {
+            "type": "boolean",
+            "description": "Whether the context information is publicly visible"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the event/event date (only if isPublic=true)",
+            "nullable": true
+          },
+          "dateFrom": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start date (only if isPublic=true)",
+            "nullable": true
+          },
+          "dateTo": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End date (only if isPublic=true)",
+            "nullable": true
+          },
+          "facilitators": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Facilitator names (only if isPublic=true)",
+            "nullable": true
+          }
+        }
+      },
+      "SurveyBlock": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Block title"
+          },
+          "sortOrder": {
+            "type": "integer",
+            "description": "Display order"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyQuestion"
+            }
+          }
+        }
+      },
+      "SurveyQuestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Question ID (required for answer submission)"
+          },
+          "text": {
+            "type": "string",
+            "description": "Question text"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "YesNo",
+              "SingleChoice",
+              "FreeText",
+              "LikertScale"
+            ]
+          },
+          "isRequired": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "freeTextMaxLength": {
+            "type": "integer",
+            "description": "Maximum character length for FreeText questions",
+            "nullable": true
+          },
+          "scaleMin": {
+            "type": "integer",
+            "nullable": true
+          },
+          "scaleMax": {
+            "type": "integer",
+            "nullable": true
+          },
+          "scaleLabels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyScaleLabel"
+            },
+            "nullable": true
+          },
+          "options": {
+            "type": "array",
+            "description": "Available options for SingleChoice questions",
+            "items": {
+              "$ref": "#/components/schemas/SurveyQuestionOption"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "SurveyScaleLabel": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "SurveyQuestionOption": {
+        "type": "object",
+        "description": "An option for SingleChoice questions",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Option ID (use this as 'value' in the answer)"
+          },
+          "text": {
+            "type": "string",
+            "description": "Option display text"
+          }
+        }
+      },
+      "SurveySubmitPayload": {
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyAnswer"
+            }
+          }
+        }
+      },
+      "SurveyAnswer": {
+        "type": "object",
+        "required": [
+          "questionId"
+        ],
+        "properties": {
+          "questionId": {
+            "type": "integer"
+          },
+          "value": {
+            "oneOf": [
+              { "type": "integer" },
+              { "type": "boolean" }
+            ],
+            "description": "Answer value. Use boolean (true/false) for YesNo, integer for SingleChoice (option ID) and LikertScale (scale value)."
+          },
+          "text": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SurveySubmitResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "example": 201
+              },
+              "message": {
+                "type": "string",
+                "example": "Thank you for your feedback."
+              }
+            }
+          }
+        }
+      },
+      "SurveyValidationError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "example": "Required fields missing."
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "questionId": {
+                  "type": "integer"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BankAccountData": {
+        "type": "object",
+        "description": "Bank account data for direct debit (Lastschrift) payments. When retrieved via GET, the IBAN is masked for security (e.g., 'DE89\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225678').",
+        "properties": {
+          "iban": {
+            "type": "string",
+            "description": "IBAN - masked in GET responses (e.g., 'DE89\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225678'), provide full IBAN for updates",
+            "example": "DE89\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u20225678"
+          },
+          "bic": {
+            "type": "string",
+            "description": "Bank Identifier Code (BIC/SWIFT)",
+            "example": "COBADEFFXXX",
+            "nullable": true
+          },
+          "accountHolder": {
+            "type": "string",
+            "description": "Name of the account holder",
+            "example": "Max Mustermann",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Name of the bank",
+            "example": "Commerzbank",
+            "nullable": true
+          }
+        }
+      },
+      "BankAccountDataUpdate": {
+        "type": "object",
+        "description": "Bank account data for updating profile. Provide complete data - this is a full replace, not a partial update. To clear bank data, send an empty object `{}`.",
+        "properties": {
+          "iban": {
+            "type": "string",
+            "description": "Full IBAN (not masked). Required when updating bank data.",
+            "example": "DE89370400440532013000"
+          },
+          "bic": {
+            "type": "string",
+            "description": "Bank Identifier Code (BIC/SWIFT)",
+            "example": "COBADEFFXXX",
+            "nullable": true
+          },
+          "accountHolder": {
+            "type": "string",
+            "description": "Name of the account holder",
+            "example": "Max Mustermann",
+            "nullable": true
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Name of the bank",
+            "example": "Commerzbank",
+            "nullable": true
+          }
+        }
       }
     },
     "responses": {

@@ -1,0 +1,9 @@
+{
+  "name": "public-api-specs",
+  "version": "1.0.0",
+  "description": "SeminarDesk Public API OpenAPI Specification",
+  "private": true,
+  "scripts": {
+    "validate": "npx @apidevtools/swagger-cli validate public-api.json"
+  }
+}
