@@ -3112,6 +3112,12 @@
           "showFacilitators": {
             "type": "boolean"
           },
+          "showContactPersons": {
+            "type": "boolean"
+          },
+          "requireOnlineAccount": {
+            "type": "boolean"
+          },
           "showNewsletterCheckbox": {
             "type": "boolean"
           },
@@ -3452,6 +3458,14 @@
           "websiteUrl": {
             "$ref": "#/components/schemas/LocalizedString"
           },
+          "showPastEventDates": {
+            "type": "boolean"
+          },
+          "customBookingPageCss": {
+            "type": "string",
+            "description": "Custom CSS for the booking page. Empty when not configured by the tenant.",
+            "nullable": true
+          },
           "withdrawalUrl": {
             "description": "Optional URL to an externally hosted withdrawal form (\"Widerrufsformular\"), required by § 356a BGB for distance contracts concluded via online interfaces (effective 19 June 2026). Empty when not configured by the tenant.",
             "$ref": "#/components/schemas/LocalizedString"
@@ -3583,6 +3597,10 @@
           "about": {
             "$ref": "#/components/schemas/LocalizedString"
           },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
           "pictureUrl": {
             "type": "string"
           }
@@ -3605,6 +3623,10 @@
           },
           "phone": {
             "type": "string"
+          },
+          "department": {
+            "type": "string",
+            "nullable": true
           },
           "email": {
             "type": "string"
