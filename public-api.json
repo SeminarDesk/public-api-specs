@@ -2650,6 +2650,7 @@
       "BookingPaymentMethod": {
         "required": [
           "accountDataRequired",
+          "billingAddressRequired",
           "externalDescription",
           "externalName",
           "id"
@@ -2666,6 +2667,9 @@
             "$ref": "#/components/schemas/LocalizedString"
           },
           "accountDataRequired": {
+            "type": "boolean"
+          },
+          "billingAddressRequired": {
             "type": "boolean"
           }
         }
