@@ -2653,11 +2653,15 @@
           "billingAddressRequired",
           "externalDescription",
           "externalName",
-          "id"
+          "id",
+          "order"
         ],
         "type": "object",
         "properties": {
           "id": {
+            "type": "integer"
+          },
+          "order": {
             "type": "integer"
           },
           "externalName": {
