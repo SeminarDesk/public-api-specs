@@ -192,7 +192,14 @@
             }
           },
           "400": {
-            "description": "Error response - price query invalid, maybe invalid voucher code was provided"
+            "description": "Error response - price query invalid, maybe invalid voucher code was provided or a date of birth after the guest's arrival (code `301`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -226,7 +233,14 @@
             }
           },
           "400": {
-            "description": "Error response - price query invalid, maybe invalid voucher code was provided"
+            "description": "Error response - price query invalid, e.g. the date of birth is after the guest's arrival (code `301`)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1313,7 +1327,14 @@
             }
           },
           "400": {
-            "description": "Error response - booking could not be created. See `message` for details."
+            "description": "Error response - booking could not be created. See `message` and `errors` for details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateBookingErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2629,13 +2650,18 @@
       "BookingPaymentMethod": {
         "required": [
           "accountDataRequired",
+          "billingAddressRequired",
           "externalDescription",
           "externalName",
-          "id"
+          "id",
+          "order"
         ],
         "type": "object",
         "properties": {
           "id": {
+            "type": "integer"
+          },
+          "order": {
             "type": "integer"
           },
           "externalName": {
@@ -2645,6 +2671,9 @@
             "$ref": "#/components/schemas/LocalizedString"
           },
           "accountDataRequired": {
+            "type": "boolean"
+          },
+          "billingAddressRequired": {
             "type": "boolean"
           }
         }
@@ -2821,6 +2850,7 @@
           },
           "dateOfBirth": {
             "type": "string",
+            "description": "Must not be after the arrival of this person, which is `eventDates[].attendanceStart`. When no arrival is sent for an event date, the start of that event date applies. A later date is rejected with HTTP 400 and error code `301`.",
             "format": "date",
             "nullable": true,
             "example": "1980-12-24"
@@ -3082,6 +3112,12 @@
           "showFacilitators": {
             "type": "boolean"
           },
+          "showContactPersons": {
+            "type": "boolean"
+          },
+          "requireOnlineAccount": {
+            "type": "boolean"
+          },
           "showNewsletterCheckbox": {
             "type": "boolean"
           },
@@ -3136,6 +3172,7 @@
           },
           "dateOfBirth": {
             "type": "string",
+            "description": "Must not be after the guest's arrival, which is `attendanceStart`. When no arrival is sent, the start of the event date applies. A later date is rejected with HTTP 400 and error code `301`.",
             "format": "date",
             "nullable": true
           },
@@ -3261,7 +3298,7 @@
           },
           "dateOfBirth": {
             "type": "string",
-            "description": "Guest's date of birth in format YYYY-MM-DD",
+            "description": "Guest's date of birth in format YYYY-MM-DD. Must not be after the guest's arrival, which is `eventDates[].attendanceStart`. When no arrival is sent for an event date, the start of that event date applies. A later date is rejected with HTTP 400 and error code `301`.",
             "format": "date",
             "nullable": true
           },
@@ -3421,6 +3458,18 @@
           "websiteUrl": {
             "$ref": "#/components/schemas/LocalizedString"
           },
+          "showPastEventDates": {
+            "type": "boolean"
+          },
+          "customBookingPageCss": {
+            "type": "string",
+            "description": "Custom CSS for the booking page. Empty when not configured by the tenant.",
+            "nullable": true
+          },
+          "withdrawalUrl": {
+            "description": "Optional URL to an externally hosted withdrawal form (\"Widerrufsformular\"), required by § 356a BGB for distance contracts concluded via online interfaces (effective 19 June 2026). Empty when not configured by the tenant.",
+            "$ref": "#/components/schemas/LocalizedString"
+          },
           "pricesInfo": {
             "$ref": "#/components/schemas/TenantInfo_pricesInfo"
           },
@@ -3548,6 +3597,10 @@
           "about": {
             "$ref": "#/components/schemas/LocalizedString"
           },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
           "pictureUrl": {
             "type": "string"
           }
@@ -3570,6 +3623,10 @@
           },
           "phone": {
             "type": "string"
+          },
+          "department": {
+            "type": "string",
+            "nullable": true
           },
           "email": {
             "type": "string"
@@ -3892,6 +3949,7 @@
               },
               "dateOfBirth": {
                 "type": "string",
+                "description": "`PUT /accounts/{accountId}/profile` stores this date as sent and does not check it against an arrival. When the same date is sent as a guest's date of birth to `/booking`, `/priceSummary` or `/prices`, it must not be after that guest's arrival, and the event date's start applies when no arrival is sent.",
                 "format": "date",
                 "nullable": true,
                 "example": "1980-03-23"
@@ -4664,13 +4722,30 @@
         "type": "object",
         "properties": {
           "code": {
-            "type": "integer"
+            "type": "integer",
+            "description": "Error code. `301` is the validation error for an invalid date of birth, for example a date after the guest's arrival."
           },
           "field": {
-            "type": "string"
+            "type": "string",
+            "description": "Payload field the error refers to. For code `301` this is `booker.dateOfBirth` or `{guestId}.dateOfBirth`, where `{guestId}` is the `id` of the guest in `additionalGuests`."
           },
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "CreateBookingErrorResponse": {
+        "type": "object",
+        "description": "Error response of `POST /booking`. `errors` lists the individual validation errors.",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateBookingResponse_errors"
+            }
           }
         }
       },
@@ -5040,6 +5115,21 @@
             "items": {
               "$ref": "#/components/schemas/EventDateGuestInfo"
             }
+          }
+        }
+      },
+      "PriceErrorResponse": {
+        "type": "object",
+        "description": "Error response of `POST /priceSummary` and `POST /prices`.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "integer",
+            "description": "Error code. `301` is the validation error for an invalid date of birth, for example a date after the guest's arrival. `POST /priceSummary` additionally returns `400` (the event date does not allow voucher codes) and `401` (invalid voucher code); both require a `voucherCode`, which `POST /prices` does not accept.",
+            "example": 301
           }
         }
       },
