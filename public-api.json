@@ -3418,6 +3418,7 @@
           "id",
           "languages",
           "legalNoticeUrl",
+          "logo",
           "logoUrl",
           "name",
           "onlineAccountInfo",
@@ -3436,6 +3437,15 @@
           },
           "logoUrl": {
             "$ref": "#/components/schemas/LocalizedString"
+          },
+          "logo": {
+            "description": "The organization logo with the width and height of the image file in pixels, and its file size. For a JPEG whose EXIF orientation turns it by a quarter, width and height are swapped, so they match the image's natural size in a browser. null when no logo is set or its size cannot be read from the file. alternativeText, title and caption are not returned.",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ImageIncludingMetaData"
+              }
+            ]
           },
           "headerImageUrl": {
             "$ref": "#/components/schemas/LocalizedString"
